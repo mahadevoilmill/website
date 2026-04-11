@@ -51,9 +51,12 @@ CREATE TABLE IF NOT EXISTS order_items (
 -- Insert your starting products
 INSERT INTO products (name, size, price, tag) 
 VALUES 
-('Cold Pressed Groundnut Oil', '1 Litre', 210, 'Bestseller'),
-('Cold Pressed Groundnut Oil', '5 Litre', 980, 'Value Pack'),
-('Cold Pressed Groundnut Oil', '15 kg', 2850, 'Bulk Save')
+('Cold Pressed Peanut Oil', '1 Litre', 210, 'Bestseller'),
+('Cold Pressed Peanut Oil', '1 kg', 280, NULL),
+('Cold Pressed Peanut Oil', '5 Litre', 980, 'Value Pack'),
+('Cold Pressed Peanut Oil', '5 kg', 1400, NULL),
+('Cold Pressed Peanut Oil', '15 Litre', 2850, 'Bulk Save'),
+('Cold Pressed Peanut Oil', '15 kg', 3400, 'Bulk Save')
 ON CONFLICT DO NOTHING;
 
 -- 6. SECURITY (Row Level Security)

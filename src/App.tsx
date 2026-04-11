@@ -35,10 +35,21 @@ interface CartItem {
   quantity: number;
 }
 
+const fallbackProducts: Product[] = [
+  { id: 'fallback-1', name: 'Cold Pressed Peanut Oil', size: '1 Litre', price: 210, tag: 'Bestseller' },
+  { id: 'fallback-2', name: 'Cold Pressed Peanut Oil', size: '1 kg', price: 280 },
+  { id: 'fallback-3', name: 'Cold Pressed Peanut Oil', size: '5 Litre', price: 980, tag: 'Value Pack' },
+  { id: 'fallback-4', name: 'Cold Pressed Peanut Oil', size: '5 kg', price: 1400 },
+  { id: 'fallback-5', name: 'Cold Pressed Peanut Oil', size: '15 Litre', price: 2850, tag: 'Bulk Save' },
+  { id: 'fallback-6', name: 'Cold Pressed Peanut Oil', size: '15 kg', price: 3400 },
+];
+
 const App: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(fallbackProducts);
+  const [productQuantities, setProductQuantities] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [productMessage, setProductMessage] = useState('');
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [authEmail, setAuthEmail] = useState('');
@@ -47,6 +58,7 @@ const App: React.FC = () => {
   const [authMessage, setAuthMessage] = useState('');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [checkoutMessage, setCheckoutMessage] = useState('');
+  const [cartMessage, setCartMessage] = useState('');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -59,9 +71,18 @@ const App: React.FC = () => {
           .order('price', { ascending: true });
 
         if (error) throw error;
-        setProducts(data || []);
+
+        if (!data || data.length === 0) {
+          setProductMessage('No products found in the database. Showing sample products.');
+          setProducts(fallbackProducts);
+        } else {
+          setProductMessage('');
+          setProducts(data);
+        }
       } catch (err) {
         console.error('Error fetching products:', err);
+        setProductMessage('Unable to load products from database. Showing sample products.');
+        setProducts(fallbackProducts);
       } finally {
         setLoading(false);
       }
@@ -142,18 +163,27 @@ const App: React.FC = () => {
     setAuthMessage('Signed out successfully.');
   };
 
+  const handleQuantityChange = (productId: string, quantity: number) => {
+    setProductQuantities(prev => ({
+      ...prev,
+      [productId]: Math.max(1, quantity),
+    }));
+  };
+
   const handleAddToCart = (product: Product) => {
+    const quantity = productQuantities[product.id] ?? 1;
     setCheckoutMessage('');
+    setCartMessage(`${product.name} (${product.size}) x${quantity} added to cart.`);
     setCartItems(prev => {
       const existing = prev.find(item => item.product.id === product.id);
       if (existing) {
         return prev.map(item =>
           item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { product, quantity }];
     });
   };
 
@@ -369,29 +399,42 @@ const App: React.FC = () => {
           <div className="section-title">
             <h2 style={{ color: 'var(--primary-green)' }}>Our Premium Collection</h2>
             <p>Carefully selected sizes for every household need</p>
+            {productMessage && <p style={{ color: 'var(--secondary-red)', marginTop: '12px' }}>{productMessage}</p>}
           </div>
           
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px' }}>Loading products...</div>
           ) : (
-            <div className="product-grid">
-              {products.map(product => (
-                <div key={product.id} className="product-card" style={{ background: '#fff' }}>
-                  <div className="product-img">
-                    <Droplet size={80} color="var(--primary-gold)" />
+            <>
+              {cartMessage && <div style={{ marginBottom: '16px', color: 'var(--primary-green)', textAlign: 'center' }}>{cartMessage}</div>}
+              <div className="product-grid">
+                {products.map(product => (
+                  <div key={product.id} className="product-card" style={{ background: '#fff' }}>
+                    <div className="product-img">
+                      <Droplet size={80} color="var(--primary-gold)" />
+                    </div>
+                    <div className="product-info">
+                      {product.tag && <span className="product-tag">{product.tag}</span>}
+                      <h3>{product.name}</h3>
+                      <p style={{ marginBottom: '16px', color: 'var(--text-muted)' }}>Size: {product.size}</p>                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                      <label htmlFor={`qty-${product.id}`} style={{ fontWeight: 600, marginBottom: 0 }}>Qty</label>
+                      <input
+                        id={`qty-${product.id}`}
+                        type="number"
+                        min={1}
+                        value={productQuantities[product.id] ?? 1}
+                        onChange={e => handleQuantityChange(product.id, Number(e.target.value))}
+                        style={{ width: '80px', padding: '10px', borderRadius: '10px', border: '1px solid #e8dcc8' }}
+                      />
+                    </div>                      <div className="product-price">₹{product.price}</div>
+                      <button type="button" className="btn btn-primary" style={{ width: '100%' }} onClick={() => handleAddToCart(product)}>
+                        Add to Cart
+                      </button>
+                    </div>
                   </div>
-                  <div className="product-info">
-                    {product.tag && <span className="product-tag">{product.tag}</span>}
-                    <h3>{product.name}</h3>
-                    <p style={{ marginBottom: '16px', color: 'var(--text-muted)' }}>Size: {product.size}</p>
-                    <div className="product-price">₹{product.price}</div>
-                    <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => handleAddToCart(product)}>
-                      Add to Cart
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </section>
@@ -453,7 +496,7 @@ const App: React.FC = () => {
             </div>
             <div className="process-item" style={{ color: 'var(--white)' }}>
               <div className="process-icon">3</div>
-              <h3 style={{ color: 'var(--white)' }}>Wood Pressing</h3>
+              <h3 style={{ color: 'var(--white)' }}>Cold Pressing</h3>
               <p style={{ color: 'rgba(255,255,255,0.8)' }}>Traditional cold-press method at low temperatures</p>
             </div>
             <div className="process-item" style={{ color: 'var(--white)' }}>
@@ -470,7 +513,7 @@ const App: React.FC = () => {
         <div className="parallax-overlay" style={{ background: 'rgba(93, 58, 26, 0.85)' }}></div>
         <div className="container parallax-content">
           <div className="section-title">
-            <h2 style={{ color: 'var(--white)' }}>Refined Oil vs Wood Pressed Oil</h2>
+            <h2 style={{ color: 'var(--white)' }}>Refined Oil vs Cold Pressed Oil</h2>
             <p style={{ color: 'var(--white)', opacity: 0.9 }}>Why choose Mahadev Oil Mill?</p>
           </div>
           <table className="comparison-table" style={{ background: 'var(--white)', color: 'var(--text-main)', borderRadius: '12px', overflow: 'hidden', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
@@ -478,14 +521,14 @@ const App: React.FC = () => {
               <tr>
                 <th style={{ background: 'var(--gray-light)', color: 'var(--text-main)' }}>Feature</th>
                 <th style={{ background: 'var(--gray-light)', color: 'var(--text-main)' }}>Refined Oil</th>
-                <th style={{ background: 'var(--primary-gold)', color: 'var(--text-main)', fontWeight: '800' }}>Mahadev Wood Pressed Oil</th>
+                <th style={{ background: 'var(--primary-gold)', color: 'var(--text-main)', fontWeight: '800' }}>Mahadev Cold Pressed Oil</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td style={{ fontWeight: '600' }}>Extraction Method</td>
                 <td>High heat & Chemical extraction</td>
-                <td style={{ color: 'var(--primary-green)', fontWeight: '700' }}>Traditional Wood Press (Lakadi Ghana)</td>
+                <td style={{ color: 'var(--primary-green)', fontWeight: '700' }}>Traditional Cold Press</td>
               </tr>
               <tr>
                 <td style={{ fontWeight: '600' }}>Nutritional Value</td>
