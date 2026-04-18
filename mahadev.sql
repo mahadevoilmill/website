@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS products (
   name text NOT NULL,
   size text NOT NULL,
   price numeric NOT NULL,
+  description text,
   tag text,
   image_url text,
   stock_quantity integer DEFAULT 100,
@@ -49,14 +50,14 @@ CREATE TABLE IF NOT EXISTS order_items (
 
 -- 5. INITIAL DATA
 -- Insert your starting products
-INSERT INTO products (name, size, price, tag) 
+INSERT INTO products (name, size, price, tag, description, image_url) 
 VALUES 
-('Cold Pressed Peanut Oil', '1 Litre', 210, 'Bestseller'),
-('Cold Pressed Peanut Oil', '1 kg', 280, NULL),
-('Cold Pressed Peanut Oil', '5 Litre', 980, 'Value Pack'),
-('Cold Pressed Peanut Oil', '5 kg', 1400, NULL),
-('Cold Pressed Peanut Oil', '15 Litre', 2850, 'Bulk Save'),
-('Cold Pressed Peanut Oil', '15 kg', 3400, 'Bulk Save')
+('Cold Pressed Peanut Oil', '1 Litre', 210, 'Bestseller', '100% pure, wood-pressed groundnut oil for healthy daily cooking.', '/assets/Peanut oil.jpg'),
+('Cold Pressed Peanut Oil', '1 kg', 280, NULL, 'Premium quality peanut oil in 1kg packing, perfect for small families.', '/assets/peanut-oil-bottle.jpg'),
+('Cold Pressed Peanut Oil', '5 Litre', 980, 'Value Pack', 'Economy pack for large families. Rich in nutrients and authentic taste.', '/assets/products.jpg'),
+('Cold Pressed Peanut Oil', '5 kg', 1400, NULL, 'Bulk quantity for regular kitchen use. Traditional wood-pressed quality.', '/assets/peanut-oil-bottle.jpg'),
+('Cold Pressed Peanut Oil', '15 Litre', 2850, 'Bulk Save', 'Ideal for commercial kitchens or large households. Save more with bulk.', '/assets/products.jpg'),
+('Cold Pressed Peanut Oil', '15 kg', 3400, 'Bulk Save', 'Large 15kg pack for maximum savings and long-term supply.', '/assets/Peanut oil.jpg')
 ON CONFLICT DO NOTHING;
 
 -- 6. SECURITY (Row Level Security)

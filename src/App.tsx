@@ -17,17 +17,10 @@ interface Product {
   name: string;
   size: string;
   price: number;
+  description?: string;
   tag?: string;
   image_url?: string;
   stock_quantity?: number;
-}
-
-interface Profile {
-  full_name?: string;
-  phone_number?: string;
-  address_line?: string;
-  city?: string;
-  pincode?: string;
 }
 
 interface CartItem {
@@ -36,12 +29,12 @@ interface CartItem {
 }
 
 const fallbackProducts: Product[] = [
-  { id: 'fallback-1', name: 'Cold Pressed Peanut Oil', size: '1 Litre', price: 210, tag: 'Bestseller' },
-  { id: 'fallback-2', name: 'Cold Pressed Peanut Oil', size: '1 kg', price: 280 },
-  { id: 'fallback-3', name: 'Cold Pressed Peanut Oil', size: '5 Litre', price: 980, tag: 'Value Pack' },
-  { id: 'fallback-4', name: 'Cold Pressed Peanut Oil', size: '5 kg', price: 1400 },
-  { id: 'fallback-5', name: 'Cold Pressed Peanut Oil', size: '15 Litre', price: 2850, tag: 'Bulk Save' },
-  { id: 'fallback-6', name: 'Cold Pressed Peanut Oil', size: '15 kg', price: 3400 },
+  { id: 'fallback-1', name: 'Cold Pressed Peanut Oil', size: '1 Litre', price: 210, tag: 'Bestseller', description: '100% pure, wood-pressed groundnut oil for healthy daily cooking.', image_url: '/assets/Peanut oil.jpg' },
+  { id: 'fallback-2', name: 'Cold Pressed Peanut Oil', size: '1 kg', price: 280, description: 'Premium quality peanut oil in 1kg packing.', image_url: '/assets/peanut-oil-bottle.jpg' },
+  { id: 'fallback-3', name: 'Cold Pressed Peanut Oil', size: '5 Litre', price: 980, tag: 'Value Pack', description: 'Economy pack for large families.', image_url: '/assets/products.jpg' },
+  { id: 'fallback-4', name: 'Cold Pressed Peanut Oil', size: '5 kg', price: 1400, description: 'Bulk quantity for regular kitchen use.', image_url: '/assets/peanut-oil-bottle.jpg' },
+  { id: 'fallback-5', name: 'Cold Pressed Peanut Oil', size: '15 Litre', price: 2850, tag: 'Bulk Save', description: 'Ideal for commercial kitchens.', image_url: '/assets/products.jpg' },
+  { id: 'fallback-6', name: 'Cold Pressed Peanut Oil', size: '15 kg', price: 3400, description: 'Large 15kg pack for maximum savings.', image_url: '/assets/Peanut oil.jpg' },
 ];
 
 const App: React.FC = () => {
@@ -51,11 +44,6 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [productMessage, setProductMessage] = useState('');
   const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authMode, setAuthMode] = useState<'sign-in' | 'sign-up'>('sign-in');
-  const [authMessage, setAuthMessage] = useState('');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [checkoutMessage, setCheckoutMessage] = useState('');
   const [cartMessage, setCartMessage] = useState('');
@@ -92,7 +80,6 @@ const App: React.FC = () => {
       const { data } = await supabase.auth.getSession();
       if (data?.session) {
         setUser(data.session.user);
-        await fetchProfile(data.session.user.id);
       }
     };
 
@@ -101,67 +88,12 @@ const App: React.FC = () => {
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
-      }
     });
 
     return () => {
       authListener?.subscription.unsubscribe();
     };
   }, []);
-
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (error && error.code !== 'PGRST116') {
-      console.error('Profile fetch error:', error);
-      return;
-    }
-
-    setProfile(data || null);
-  };
-
-  const handleAuthSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setAuthMessage('');
-
-    if (!authEmail || !authPassword) {
-      setAuthMessage('Please enter both email and password.');
-      return;
-    }
-
-    if (authMode === 'sign-up') {
-      const { error } = await supabase.auth.signUp({ email: authEmail, password: authPassword });
-      if (error) {
-        setAuthMessage(error.message);
-        return;
-      }
-      setAuthMessage('Check your email to confirm sign up.');
-      return;
-    }
-
-    const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
-    if (error) {
-      setAuthMessage(error.message);
-      return;
-    }
-
-    setAuthMessage('Signed in successfully.');
-  };
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
-    setAuthMessage('Signed out successfully.');
-  };
 
   const handleQuantityChange = (productId: string, quantity: number) => {
     setProductQuantities(prev => ({
@@ -189,7 +121,7 @@ const App: React.FC = () => {
 
   const handleCheckout = async () => {
     if (!user) {
-      setCheckoutMessage('Please sign in to complete your order.');
+      setCheckoutMessage('Checkout is currently disabled without login. Please contact us on WhatsApp to order.');
       return;
     }
 
@@ -229,34 +161,6 @@ const App: React.FC = () => {
     } finally {
       setCheckoutLoading(false);
     }
-  };
-
-  const handleProfileSave = async () => {
-    if (!user) {
-      setAuthMessage('Sign in first to save profile details.');
-      return;
-    }
-
-    const profilePayload = {
-      id: user.id,
-      full_name: profile?.full_name || null,
-      phone_number: profile?.phone_number || null,
-      address_line: profile?.address_line || null,
-      city: profile?.city || null,
-      pincode: profile?.pincode || null,
-    };
-
-    const { error } = await supabase.from('profiles').upsert(profilePayload);
-    if (error) {
-      setAuthMessage('Failed to save profile.');
-      return;
-    }
-
-    setAuthMessage('Profile details saved successfully.');
-  };
-
-  const updateProfileField = (field: keyof Profile, value: string) => {
-    setProfile(prev => ({ ...(prev || {}), [field]: value }));
   };
 
   return (
@@ -329,69 +233,6 @@ const App: React.FC = () => {
         </div>
       </section>
 
-      {/* User Authentication */}
-      <section className="auth-section">
-        <div className="container auth-card">
-          {!user ? (
-            <form className="auth-form" onSubmit={handleAuthSubmit}>
-              <div className="section-title">
-                <h2>Customer Login</h2>
-                <p>Sign in or create an account to place orders and save your delivery details.</p>
-              </div>
-              <div className="auth-input-group">
-                <label>Email</label>
-                <input type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} placeholder="you@example.com" required />
-              </div>
-              <div className="auth-input-group">
-                <label>Password</label>
-                <input type="password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} placeholder="Enter strong password" required />
-              </div>
-              <div className="auth-actions">
-                <button type="submit" className="btn btn-primary">{authMode === 'sign-in' ? 'Sign In' : 'Sign Up'}</button>
-                <button type="button" className="btn btn-secondary" onClick={() => setAuthMode(authMode === 'sign-in' ? 'sign-up' : 'sign-in')}>
-                  {authMode === 'sign-in' ? 'Create account' : 'Already have account?'}
-                </button>
-              </div>
-              {authMessage && <p className="auth-message">{authMessage}</p>}
-            </form>
-          ) : (
-            <div className="profile-card">
-              <div className="section-title">
-                <h2>Welcome, {user.email}</h2>
-                <p>Update your profile so we can deliver your order accurately.</p>
-              </div>
-              <div className="profile-grid">
-                <div className="auth-input-group">
-                  <label>Full Name</label>
-                  <input type="text" value={profile?.full_name || ''} onChange={e => updateProfileField('full_name', e.target.value)} placeholder="Your full name" />
-                </div>
-                <div className="auth-input-group">
-                  <label>Phone Number</label>
-                  <input type="tel" value={profile?.phone_number || ''} onChange={e => updateProfileField('phone_number', e.target.value)} placeholder="Mobile number" />
-                </div>
-                <div className="auth-input-group">
-                  <label>Address</label>
-                  <input type="text" value={profile?.address_line || ''} onChange={e => updateProfileField('address_line', e.target.value)} placeholder="House, street, locality" />
-                </div>
-                <div className="auth-input-group">
-                  <label>City</label>
-                  <input type="text" value={profile?.city || ''} onChange={e => updateProfileField('city', e.target.value)} placeholder="City" />
-                </div>
-                <div className="auth-input-group">
-                  <label>Pincode</label>
-                  <input type="text" value={profile?.pincode || ''} onChange={e => updateProfileField('pincode', e.target.value)} placeholder="Pincode" />
-                </div>
-              </div>
-              <div className="auth-actions">
-                <button type="button" className="btn btn-primary" onClick={handleProfileSave}>Save Profile</button>
-                <button type="button" className="btn btn-secondary" onClick={handleSignOut}>Sign Out</button>
-              </div>
-              {authMessage && <p className="auth-message">{authMessage}</p>}
-            </div>
-          )}
-        </div>
-      </section>
-
       {/* Products - Parallax */}
       <section id="products" className="parallax-section" style={{ backgroundImage: "url('/assets/peanut-oil-bottle.jpg')" }}>
         <div className="parallax-overlay" style={{ background: 'rgba(255, 255, 255, 0.92)' }}></div>
@@ -411,22 +252,29 @@ const App: React.FC = () => {
                 {products.map(product => (
                   <div key={product.id} className="product-card" style={{ background: '#fff' }}>
                     <div className="product-img">
-                      <Droplet size={80} color="var(--primary-gold)" />
+                      {product.image_url ? (
+                        <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Droplet size={80} color="var(--primary-gold)" />
+                      )}
                     </div>
                     <div className="product-info">
                       {product.tag && <span className="product-tag">{product.tag}</span>}
                       <h3>{product.name}</h3>
-                      <p style={{ marginBottom: '16px', color: 'var(--text-muted)' }}>Size: {product.size}</p>                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                      <label htmlFor={`qty-${product.id}`} style={{ fontWeight: 600, marginBottom: 0 }}>Qty</label>
-                      <input
-                        id={`qty-${product.id}`}
-                        type="number"
-                        min={1}
-                        value={productQuantities[product.id] ?? 1}
-                        onChange={e => handleQuantityChange(product.id, Number(e.target.value))}
-                        style={{ width: '80px', padding: '10px', borderRadius: '10px', border: '1px solid #e8dcc8' }}
-                      />
-                    </div>                      <div className="product-price">₹{product.price}</div>
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px' }}>{product.description}</p>
+                      <p style={{ marginBottom: '16px', color: 'var(--text-main)', fontWeight: '600' }}>Size: {product.size}</p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                        <label htmlFor={`qty-${product.id}`} style={{ fontWeight: 600, marginBottom: 0 }}>Qty</label>
+                        <input
+                          id={`qty-${product.id}`}
+                          type="number"
+                          min={1}
+                          value={productQuantities[product.id] ?? 1}
+                          onChange={e => handleQuantityChange(product.id, Number(e.target.value))}
+                          style={{ width: '80px', padding: '10px', borderRadius: '10px', border: '1px solid #e8dcc8' }}
+                        />
+                      </div>
+                      <div className="product-price">₹{product.price}</div>
                       <button type="button" className="btn btn-primary" style={{ width: '100%' }} onClick={() => handleAddToCart(product)}>
                         Add to Cart
                       </button>
