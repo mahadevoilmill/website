@@ -28,10 +28,15 @@ CREATE TABLE IF NOT EXISTS profiles (
 );
 
 -- 3. ORDERS TABLE
--- Tracks customer purchases
+-- Tracks customer purchases (Supports both logged-in users and guests)
 CREATE TABLE IF NOT EXISTS orders (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  customer_id uuid REFERENCES auth.users,
+  customer_id uuid REFERENCES auth.users, -- Optional for guests
+  guest_name text,
+  guest_phone text,
+  guest_address text,
+  guest_city text,
+  guest_pincode text,
   total_amount numeric NOT NULL,
   status text DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'shipped', 'delivered', 'cancelled')),
   payment_id text,
