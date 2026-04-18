@@ -140,12 +140,11 @@ const TrustBar: React.FC = () => (
 const Home: React.FC<{ 
   products: Product[], 
   loading: boolean, 
-  productMessage: string,
   cartMessage: string,
   productQuantities: Record<string, number>,
   handleQuantityChange: (id: string, q: number) => void,
   handleAddToCart: (p: Product) => void
-}> = ({ products, loading, productMessage, cartMessage, productQuantities, handleQuantityChange, handleAddToCart }) => (
+}> = ({ products, loading, cartMessage, productQuantities, handleQuantityChange, handleAddToCart }) => (
   <div className="animate-fade-up">
     {/* Hero */}
     <section id="home" className="relative h-[85vh] flex items-center overflow-hidden rounded-b-[80px] bg-transparent">
@@ -631,7 +630,7 @@ const App: React.FC = () => {
         <main className="flex-grow relative z-10">
           <Routes>
             <Route path="/" element={<Home 
-              products={products} loading={loading} productMessage="" cartMessage={cartMessage}
+              products={products} loading={loading} cartMessage={cartMessage}
               productQuantities={productQuantities} handleQuantityChange={handleQuantityChange} handleAddToCart={handleAddToCart}
             />} />
             <Route path="/cart" element={<Cart 
