@@ -60,9 +60,9 @@ declare global {
 
 // --- Constants ---
 const fallbackProducts: Product[] = [
-  { id: 'fallback-1', name: 'Cold Pressed Groundnut Oil', size: '1 Litre', price: 210, tag: 'Bestseller', category: 'Groundnut', description: '100% pure, wood-pressed groundnut oil for healthy daily cooking.', image_url: '/assets/Peanut oil.jpg' },
+  { id: 'fallback-1', name: 'Cold Pressed Groundnut Oil', size: '1 Litre', price: 210, tag: 'Bestseller', category: 'Groundnut', description: '100% pure, cold pressed groundnut oil for healthy daily cooking.', image_url: '/assets/Peanut oil.jpg' },
   { id: 'fallback-2', name: 'Cold Pressed Groundnut Oil', size: '1 kg', price: 280, category: 'Groundnut', description: 'Premium quality groundnut oil in 1kg packing.', image_url: '/assets/peanut-oil-bottle.jpg' },
-  { id: 'fallback-3', name: 'Cold Pressed Groundnut Oil', size: '5 Litre', price: 1050, category: 'Groundnut', description: 'Premium wood-pressed groundnut oil in 5L pack.', image_url: 'https://dmdecibmnmnquppjnzjo.supabase.co/storage/v1/object/public/product/5%20Kg.png' },
+  { id: 'fallback-3', name: 'Cold Pressed Groundnut Oil', size: '5 Litre', price: 1050, category: 'Groundnut', description: 'Premium cold pressed groundnut oil in 5L pack.', image_url: 'https://dmdecibmnmnquppjnzjo.supabase.co/storage/v1/object/public/product/5%20Kg.png' },
   { id: 'fallback-4', name: 'Cold Pressed Groundnut Oil', size: '5 kg', price: 1400, category: 'Groundnut', description: 'Bulk quantity for regular kitchen use.', image_url: 'https://dmdecibmnmnquppjnzjo.supabase.co/storage/v1/object/public/product/5%20Kg.png' },
   { id: 'fallback-5', name: 'Cold Pressed Groundnut Oil', size: '15 Litre', price: 2850, tag: 'Bulk Save', category: 'Groundnut', description: 'Ideal for commercial kitchens.', image_url: '/assets/products.jpg' },
   { id: 'fallback-6', name: 'Cold Pressed Groundnut Oil', size: '15 kg', price: 3400, category: 'Groundnut', description: 'Large 15kg pack for maximum savings.', image_url: '/assets/Peanut oil.jpg' },
@@ -94,7 +94,7 @@ const TopBar: React.FC = () => (
   </div>
 );
 
-const Header: React.FC<{ cartCount: number }> = ({ cartCount }) => {
+const Header: React.FC<{ cartCount: number, wishlistCount: number }> = ({ cartCount, wishlistCount }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -110,7 +110,7 @@ const Header: React.FC<{ cartCount: number }> = ({ cartCount }) => {
             <div className="ml-4 hidden lg:block text-left">
               <h1 className="leading-none">
                 <span className="text-3xl md:text-4xl font-black text-mill-green tracking-tighter block">MAHADEV</span>
-                <span className="text-[12px] md:text-sm text-mill-gold uppercase tracking-[0.5em] font-black mt-1 block">Traditional Oil Mill</span>
+                <span className="text-[12px] md:text-sm text-mill-gold uppercase tracking-[0.5em] font-black mt-1 block">Oil Mill</span>
               </h1>
             </div>
           </Link>
@@ -119,7 +119,7 @@ const Header: React.FC<{ cartCount: number }> = ({ cartCount }) => {
             <div className="relative group">
               <input 
                 type="text" 
-                placeholder="Search for pure wood-pressed oils..." 
+                placeholder="Search for pure cold pressed oils..." 
                 className="w-full bg-gray-100 border-none rounded-full py-4 px-8 pl-14 focus:ring-2 focus:ring-mill-green/20 focus:bg-white transition-all duration-300 font-bold text-base"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -136,10 +136,14 @@ const Header: React.FC<{ cartCount: number }> = ({ cartCount }) => {
               <GitCompare size={24} />
               <span className="absolute top-1 right-1 w-5 h-5 bg-mill-gold text-white text-[10px] font-black rounded-full flex items-center justify-center">0</span>
             </button>
-            <button className="p-3 text-slate-600 hover:bg-gray-100 rounded-full transition-colors hidden sm:block relative">
+            <Link to="/wishlist" className="p-3 text-slate-600 hover:bg-gray-100 rounded-full transition-colors hidden sm:block relative">
               <Heart size={24} />
-              <span className="absolute top-1 right-1 w-5 h-5 bg-mill-gold text-white text-[10px] font-black rounded-full flex items-center justify-center">0</span>
-            </button>
+              {wishlistCount > 0 && (
+                <span className="absolute top-1 right-1 w-5 h-5 bg-mill-gold text-white text-[10px] font-black rounded-full flex items-center justify-center ring-2 ring-white">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
             <Link to="/login" className="p-3 text-slate-600 hover:bg-gray-100 rounded-full transition-colors flex items-center space-x-2">
               <User size={24} />
               <span className="hidden lg:inline text-sm font-black uppercase tracking-widest">Login</span>
@@ -257,8 +261,10 @@ const Home: React.FC<{
   products: Product[], 
   loading: boolean, 
   cartMessage: string,
-  handleAddToCart: (p: Product) => void
-}> = ({ products, loading, cartMessage, handleAddToCart }) => (
+  wishlist: Product[],
+  handleAddToCart: (p: Product) => void,
+  toggleWishlist: (p: Product) => void
+}> = ({ products, loading, cartMessage, wishlist, handleAddToCart, toggleWishlist }) => (
   <div className="animate-fade-up">
     {/* Hero */}
     <section id="home" className="relative h-[75vh] flex items-center bg-slate-50 overflow-hidden">
@@ -269,7 +275,7 @@ const Home: React.FC<{
             <span className="text-mill-gold">Trust & Taste.</span>
           </h1>
           <p className="text-xl text-slate-500 mb-12 max-w-xl font-bold leading-relaxed">
-            Experience the essence of tradition with our 100% pure wood-pressed oils. No chemicals, no heat, just pure goodness.
+            Experience the essence of tradition with our 100% pure cold pressed oils. No chemicals, no heat, just pure goodness.
           </p>
           <div className="flex flex-col sm:flex-row gap-6">
             <a href="#products" className="bg-mill-green text-white px-10 py-5 rounded-full font-black uppercase tracking-widest hover:bg-mill-gold transition-all shadow-xl shadow-mill-green/20 text-base">Shop Now</a>
@@ -278,7 +284,7 @@ const Home: React.FC<{
         </div>
         <div className="relative h-full hidden lg:flex items-center justify-center">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-mill-gold/5 rounded-full blur-3xl"></div>
-          <img src="/assets/peanut-oil-bottle.jpg" alt="Hero Oil" className="relative z-10 h-[85%] object-contain drop-shadow-[0_35px_35px_rgba(0,0,0,0.2)]" />
+          <img src="/assets/process.jpg" alt="Oil Mill" className="relative z-10 h-[85%] object-contain drop-shadow-[0_35px_35px_rgba(0,0,0,0.2)]" />
         </div>
       </div>
     </section>
@@ -356,7 +362,7 @@ const Home: React.FC<{
     <section id="process" className="py-40 container mx-auto px-4 overflow-hidden">
       <div className="text-center max-w-4xl mx-auto mb-24 animate-fade-up">
         <span className="text-mill-gold font-black uppercase tracking-[0.4em] text-xs mb-6 block">From Field to Kitchen</span>
-        <h2 className="text-5xl md:text-8xl font-black text-mill-green tracking-tighter mb-8 leading-none">Traditional wood-pressing journey</h2>
+        <h2 className="text-5xl md:text-8xl font-black text-mill-green tracking-tighter mb-8 leading-none">Traditional cold-pressing journey</h2>
         <p className="text-slate-500 font-bold text-xl opacity-70">Experience the sacred art of cold pressing where we prioritize your health over high-speed production.</p>
       </div>
 
@@ -402,12 +408,12 @@ const Home: React.FC<{
                 <tr className="bg-slate-900 border-b border-white/10">
                   <th className="p-12 text-2xl font-black uppercase tracking-widest text-white/50 border-r border-white/5">Feature</th>
                   <th className="p-12 text-2xl font-black uppercase tracking-widest text-red-500 bg-red-500/5 border-r border-white/5 text-center">Refined Oil</th>
-                  <th className="p-12 text-4xl font-black uppercase tracking-widest text-black bg-mill-gold shadow-2xl text-center">Mahadev Advantage</th>
+                  <th className="p-12 text-4xl font-black uppercase tracking-widest text-black bg-mill-gold shadow-2xl text-center">Cold Pressed Oil</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  { f: "Extraction Method", r: "High heat & Chemicals", m: "Traditional Wood Press" },
+                  { f: "Extraction Method", r: "High heat & Chemicals", m: "Traditional Cold Press" },
                   { f: "Nutritional Value", r: "Lost during heating", m: "100% Nutrients Retained" },
                   { f: "Cholesterol Level", r: "Contains Trans Fats", m: "Zero Trans Fats" },
                   { f: "Preservatives", r: "Harmful Additives", m: "Pure & Chemical Free" }
@@ -443,10 +449,10 @@ const Home: React.FC<{
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center text-left">
           <div>
             <span className="text-mill-gold font-black uppercase tracking-widest text-sm mb-5 block">The Pure Choice</span>
-            <h2 className="text-5xl md:text-7xl font-black text-mill-green tracking-tighter mb-10 leading-tight">Why Our Wood-Pressed <br/> Oils are Better?</h2>
-            <div className="space-y-10">
+            <h2 className="text-4xl md:text-6xl font-black text-mill-green tracking-tighter mb-8 leading-tight">Why Our Cold Pressed <br/> Oils are Better?</h2>
+            <div className="space-y-8">
               {[
-                { title: "Preserved Nutrients", desc: "Unlike refined oils extracted at high heat, our wood-pressed method keeps vitamins and minerals intact." },
+                { title: "Preserved Nutrients", desc: "Unlike refined oils extracted at high heat, our cold pressed method keeps vitamins and minerals intact." },
                 { title: "No Harmful Chemicals", desc: "We use zero solvents or preservatives. What you get is 100% natural seed extract." },
                 { title: "Heart Healthy", desc: "Our oils are naturally cholesterol-free and contain essential fatty acids for a healthy heart." }
               ].map((item, i) => (
@@ -487,7 +493,7 @@ const Home: React.FC<{
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {[
-              { comment: "The aroma of this wood-pressed oil is truly authentic. It has completely transformed the taste of our traditional Gujarati dishes. Best in class quality!" },
+              { comment: "The aroma of this cold pressed oil is truly authentic. It has completely transformed the taste of our traditional Gujarati dishes. Best in class quality!" },
               { comment: "We have been using Mahadev Oil for over a year now. The purity and consistency are unmatched. Highly recommended for any health-conscious family." }
             ].map((t, i) => (
               <div key={i} className="p-16 bg-white/40 backdrop-blur-md rounded-[60px] border border-white/60 shadow-xl group hover:bg-white/60 transition-all duration-500 text-left">
@@ -634,7 +640,7 @@ const Success: React.FC = () => (
     </div>
     <h2 className="text-7xl md:text-9xl font-black text-mill-green mb-10 tracking-tighter">Payment Received!</h2>
     <p className="text-3xl text-slate-500 font-bold max-w-3xl mb-20 leading-relaxed opacity-80">
-      Your journey to healthy cooking begins. We've confirmed your order and will dispatch your pure wood-pressed oil within 24 hours.
+      Your journey to healthy cooking begins. We've confirmed your order and will dispatch your pure cold pressed oil within 24 hours.
     </p>
     <Link to="/" className="btn-primary text-2xl px-16 py-6 uppercase tracking-widest font-black">Back to Shop</Link>
   </div>
@@ -651,11 +657,11 @@ const Footer: React.FC = () => (
             <img src="/logo.jpeg" alt="Logo" className="w-16 h-16 rounded-2xl bg-white p-1.5 shadow-xl" />
             <h1 className="leading-none">
               <span className="text-4xl font-black tracking-tighter block text-white">MAHADEV</span>
-              <span className="text-[12px] text-mill-gold uppercase tracking-[0.4em] font-black mt-1 block">Traditional Oil Mill</span>
+              <span className="text-[12px] text-mill-gold uppercase tracking-[0.4em] font-black mt-1 block">Oil Mill</span>
             </h1>
           </div>
           <p className="text-white/50 font-bold text-base leading-relaxed mb-10">
-            Bringing back the traditional purity of wood-pressed oils to every kitchen. Experience health in every drop.
+            Bringing back the traditional purity of cold pressed oils to every kitchen. Experience health in every drop.
           </p>
           <div className="flex space-x-6">
             <a href="#" className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center hover:bg-mill-gold transition-colors"><MessageCircle size={22} /></a>
@@ -696,14 +702,6 @@ const Footer: React.FC = () => (
             <button className="bg-mill-gold text-white px-6 rounded-r-2xl hover:bg-white hover:text-mill-green transition-all">
               <ChevronRight size={24} />
             </button>
-          </div>
-          <div className="mt-12">
-            <h5 className="text-[12px] font-black uppercase tracking-widest text-white/30 mb-5">Also available on</h5>
-            <div className="flex gap-6 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all cursor-not-allowed">
-              <span className="font-black text-sm tracking-tighter">ZEPTO</span>
-              <span className="font-black text-sm tracking-tighter">BLINKIT</span>
-              <span className="font-black text-sm tracking-tighter">SWIGGY</span>
-            </div>
           </div>
         </div>
       </div>
@@ -816,6 +814,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [wishlist, setWishlist] = useState<Product[]>([]);
   const [checkoutMessage, setCheckoutMessage] = useState('');
   const [cartMessage, setCartMessage] = useState('');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -838,6 +837,18 @@ const App: React.FC = () => {
     fetchProducts();
     supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
   }, []);
+
+  const toggleWishlist = (product: Product) => {
+    setWishlist(prev => {
+      const exists = prev.find(p => p.id === product.id);
+      if (exists) {
+        return prev.filter(p => p.id !== product.id);
+      }
+      setCartMessage(`Added to Wishlist! ❤️`);
+      setTimeout(() => setCartMessage(''), 3000);
+      return [...prev, product];
+    });
+  };
 
   const updateCartQuantity = (productId: string, delta: number) => {
     setCartItems(prev => prev.map(item => 
@@ -878,7 +889,7 @@ const App: React.FC = () => {
 
       const options = {
         key: 'rzp_test_YOUR_KEY_HERE', amount: total * 100, currency: 'INR', name: 'Mahadev Oil Mill',
-        description: 'Traditional Wood Pressed Oil',
+        description: 'Traditional Cold Pressed Oil',
         image: '/logo.jpeg',
         handler: async (res: any) => {
           await supabase.from('orders').update({ status: 'paid', payment_id: res.razorpay_payment_id }).eq('id', order.id);
