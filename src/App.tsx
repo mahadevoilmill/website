@@ -17,7 +17,6 @@ import {
   CheckCircle,
   ArrowLeft,
   Star,
-  Award,
   Leaf,
   Truck,
   Plus,
@@ -94,7 +93,7 @@ const TopBar: React.FC = () => (
   </div>
 );
 
-const Header: React.FC<{ cartCount: number, wishlistCount: number }> = ({ cartCount, wishlistCount }) => {
+const Header: React.FC<{ cartCount: number }> = ({ cartCount }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -136,14 +135,6 @@ const Header: React.FC<{ cartCount: number, wishlistCount: number }> = ({ cartCo
               <GitCompare size={24} />
               <span className="absolute top-1 right-1 w-5 h-5 bg-mill-gold text-white text-[10px] font-black rounded-full flex items-center justify-center">0</span>
             </button>
-            <Link to="/wishlist" className="p-3 text-slate-600 hover:bg-gray-100 rounded-full transition-colors hidden sm:block relative">
-              <Heart size={24} />
-              {wishlistCount > 0 && (
-                <span className="absolute top-1 right-1 w-5 h-5 bg-mill-gold text-white text-[10px] font-black rounded-full flex items-center justify-center ring-2 ring-white">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
             <Link to="/login" className="p-3 text-slate-600 hover:bg-gray-100 rounded-full transition-colors flex items-center space-x-2">
               <User size={24} />
               <span className="hidden lg:inline text-sm font-black uppercase tracking-widest">Login</span>
@@ -261,10 +252,8 @@ const Home: React.FC<{
   products: Product[], 
   loading: boolean, 
   cartMessage: string,
-  wishlist: Product[],
-  handleAddToCart: (p: Product) => void,
-  toggleWishlist: (p: Product) => void
-}> = ({ products, loading, cartMessage, wishlist, handleAddToCart, toggleWishlist }) => (
+  handleAddToCart: (p: Product) => void
+}> = ({ products, loading, cartMessage, handleAddToCart }) => (
   <div className="animate-fade-up">
     {/* Hero */}
     <section id="home" className="relative h-[75vh] flex items-center bg-slate-50 overflow-hidden">
@@ -814,7 +803,6 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [wishlist, setWishlist] = useState<Product[]>([]);
   const [checkoutMessage, setCheckoutMessage] = useState('');
   const [cartMessage, setCartMessage] = useState('');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -838,17 +826,6 @@ const App: React.FC = () => {
     supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
   }, []);
 
-  const toggleWishlist = (product: Product) => {
-    setWishlist(prev => {
-      const exists = prev.find(p => p.id === product.id);
-      if (exists) {
-        return prev.filter(p => p.id !== product.id);
-      }
-      setCartMessage(`Added to Wishlist! ❤️`);
-      setTimeout(() => setCartMessage(''), 3000);
-      return [...prev, product];
-    });
-  };
 
   const updateCartQuantity = (productId: string, delta: number) => {
     setCartItems(prev => prev.map(item => 
