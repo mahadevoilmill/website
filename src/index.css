@@ -4,11 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-mill-cream text-slate-800 font-sans antialiased;
-    background-image: linear-gradient(rgba(253, 251, 247, 0.95), rgba(253, 251, 247, 0.95)), url('/assets/peanut-farm.jpg');
-    background-attachment: fixed;
-    background-size: cover;
-    background-position: center;
+    @apply bg-slate-50 text-slate-800 font-sans antialiased;
   }
 }
 

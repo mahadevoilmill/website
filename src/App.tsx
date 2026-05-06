@@ -25,7 +25,12 @@ import {
   Trash2,
   ChevronRight,
   ShieldAlert,
-  Verified
+  Verified,
+  Heart,
+  Search,
+  User,
+  GitCompare,
+  ChevronDown
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
@@ -39,6 +44,7 @@ interface Product {
   tag?: string;
   image_url?: string;
   stock_quantity?: number;
+  category?: string;
 }
 
 interface CartItem {
@@ -54,85 +60,195 @@ declare global {
 
 // --- Constants ---
 const fallbackProducts: Product[] = [
-  { id: 'fallback-1', name: 'Cold Pressed Peanut Oil', size: '1 Litre', price: 210, tag: 'Bestseller', description: '100% pure, wood-pressed groundnut oil for healthy daily cooking.', image_url: '/assets/Peanut oil.jpg' },
-  { id: 'fallback-2', name: 'Cold Pressed Peanut Oil', size: '1 kg', price: 280, description: 'Premium quality peanut oil in 1kg packing.', image_url: '/assets/peanut-oil-bottle.jpg' },
-  { id: 'fallback-3', name: 'Cold Pressed Peanut Oil', size: '5 Litre', price: 980, tag: 'Value Pack', description: 'Economy pack for large families.', image_url: '/assets/products.jpg' },
-  { id: 'fallback-4', name: 'Cold Pressed Peanut Oil', size: '5 kg', price: 1400, description: 'Bulk quantity for regular kitchen use.', image_url: '/assets/peanut-oil-bottle.jpg' },
-  { id: 'fallback-5', name: 'Cold Pressed Peanut Oil', size: '15 Litre', price: 2850, tag: 'Bulk Save', description: 'Ideal for commercial kitchens.', image_url: '/assets/products.jpg' },
-  { id: 'fallback-6', name: 'Cold Pressed Peanut Oil', size: '15 kg', price: 3400, description: 'Large 15kg pack for maximum savings.', image_url: '/assets/Peanut oil.jpg' },
+  { id: 'fallback-1', name: 'Cold Pressed Groundnut Oil', size: '1 Litre', price: 210, tag: 'Bestseller', category: 'Groundnut', description: '100% pure, wood-pressed groundnut oil for healthy daily cooking.', image_url: '/assets/Peanut oil.jpg' },
+  { id: 'fallback-2', name: 'Cold Pressed Groundnut Oil', size: '1 kg', price: 280, category: 'Groundnut', description: 'Premium quality groundnut oil in 1kg packing.', image_url: '/assets/peanut-oil-bottle.jpg' },
+  { id: 'fallback-3', name: 'Cold Pressed Groundnut Oil', size: '5 Litre', price: 1050, category: 'Groundnut', description: 'Premium wood-pressed groundnut oil in 5L pack.', image_url: 'https://dmdecibmnmnquppjnzjo.supabase.co/storage/v1/object/public/product/5%20Kg.png' },
+  { id: 'fallback-4', name: 'Cold Pressed Groundnut Oil', size: '5 kg', price: 1400, category: 'Groundnut', description: 'Bulk quantity for regular kitchen use.', image_url: 'https://dmdecibmnmnquppjnzjo.supabase.co/storage/v1/object/public/product/5%20Kg.png' },
+  { id: 'fallback-5', name: 'Cold Pressed Groundnut Oil', size: '15 Litre', price: 2850, tag: 'Bulk Save', category: 'Groundnut', description: 'Ideal for commercial kitchens.', image_url: '/assets/products.jpg' },
+  { id: 'fallback-6', name: 'Cold Pressed Groundnut Oil', size: '15 kg', price: 3400, category: 'Groundnut', description: 'Large 15kg pack for maximum savings.', image_url: '/assets/Peanut oil.jpg' },
 ];
 
 // --- Sub-components ---
 
+const TopBar: React.FC = () => (
+  <div className="bg-slate-50 border-b border-gray-200 py-3 hidden md:block">
+    <div className="container mx-auto px-4 flex justify-between items-center text-sm font-bold text-slate-600">
+      <div className="flex items-center space-x-8">
+        <a href="tel:+919879944395" className="flex items-center space-x-2 hover:text-mill-green transition-colors">
+          <Phone size={16} className="text-mill-gold" />
+          <span>+91 98799 44395</span>
+        </a>
+        <div className="flex items-center space-x-2">
+          <MapPin size={16} className="text-mill-gold" />
+          <div className="flex items-center space-x-1 cursor-pointer hover:text-mill-green text-sm">
+            <span>Vasad, Gujarat</span>
+            <ChevronDown size={14} />
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center space-x-8">
+        <Link to="/track" className="hover:text-mill-green">Track Order</Link>
+        <Link to="/support" className="hover:text-mill-green">Customer Support</Link>
+      </div>
+    </div>
+  </div>
+);
+
 const Header: React.FC<{ cartCount: number }> = ({ cartCount }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <header className="sticky top-0 z-50 glass-nav shadow-sm">
-      <div className="container mx-auto px-4 h-28 flex items-center justify-between">
-        <Link to="/" className="flex items-center group">
-          <div className="w-16 h-16 md:w-20 md:h-20 overflow-hidden group-hover:scale-110 transition-all duration-500">
-            <img src="/logo.jpeg" alt="Mahadev Oil Mill" className="w-full h-full object-contain" />
-          </div>
-          <div className="ml-6 flex items-center">
-            <h1 className="text-2xl md:text-3xl font-[1000] tracking-tight whitespace-nowrap">
-              <span className="text-mill-green">MAHADEV</span>
-              <span className="text-mill-gold ml-3 font-black text-lg md:text-xl uppercase tracking-[0.2em]">Oil Mill</span>
-            </h1>
-          </div>
-        </Link>
-        
-        <nav className={`fixed inset-0 bg-white/95 backdrop-blur-3xl z-50 flex flex-col items-center justify-center space-y-10 transition-all duration-700 lg:static lg:bg-transparent lg:flex-row lg:space-y-0 lg:space-x-12 ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full lg:translate-y-0 opacity-0 lg:opacity-100'}`}>
-          <button onClick={() => setIsMenuOpen(false)} className="lg:hidden absolute top-8 right-8 p-3 bg-gray-50 rounded-full text-mill-green">
-            <X size={28} />
-          </button>
-          <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-sm font-black uppercase tracking-widest text-mill-green hover:text-mill-gold transition-colors">Home</Link>
-          <a href="/#products" onClick={() => setIsMenuOpen(false)} className="text-sm font-black uppercase tracking-widest text-mill-green hover:text-mill-gold transition-colors">Products</a>
-          <a href="/#process" onClick={() => setIsMenuOpen(false)} className="text-sm font-black uppercase tracking-widest text-mill-green hover:text-mill-gold transition-colors">Our Process</a>
-          <a href="/#about" onClick={() => setIsMenuOpen(false)} className="text-sm font-black uppercase tracking-widest text-mill-green hover:text-mill-gold transition-colors">About Us</a>
-          <a href="/#contact" onClick={() => setIsMenuOpen(false)} className="text-sm font-black uppercase tracking-widest text-mill-green hover:text-mill-gold transition-colors">Contact</a>
-        </nav>
-
-        <div className="flex items-center space-x-4">
-          <Link to="/cart" className="relative p-4 bg-mill-green/5 rounded-2xl text-mill-green hover:bg-mill-green hover:text-white transition-all duration-500 group">
-            <ShoppingBag size={22} />
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-secondary-red text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center ring-4 ring-white shadow-xl group-hover:scale-110 transition-transform">
-                {cartCount}
-              </span>
-            )}
+    <header className="sticky top-0 z-50 shadow-sm">
+      <TopBar />
+      <div className="bg-white/95 backdrop-blur-md border-b border-gray-100">
+        <div className="container mx-auto px-4 h-24 flex items-center justify-between gap-6">
+          <Link to="/" className="flex items-center shrink-0">
+            <div className="w-16 h-16 md:w-20 md:h-20 overflow-hidden">
+              <img src="/logo.jpeg" alt="Mahadev Oil Mill" className="w-full h-full object-contain" />
+            </div>
+            <div className="ml-4 hidden lg:block text-left">
+              <h1 className="leading-none">
+                <span className="text-3xl md:text-4xl font-black text-mill-green tracking-tighter block">MAHADEV</span>
+                <span className="text-[12px] md:text-sm text-mill-gold uppercase tracking-[0.5em] font-black mt-1 block">Traditional Oil Mill</span>
+              </h1>
+            </div>
           </Link>
-          <button onClick={() => setIsMenuOpen(true)} className="lg:hidden p-4 bg-mill-green/5 rounded-2xl text-mill-green">
-            <Menu size={22} />
+
+          <div className="flex-1 max-w-2xl hidden md:block">
+            <div className="relative group">
+              <input 
+                type="text" 
+                placeholder="Search for pure wood-pressed oils..." 
+                className="w-full bg-gray-100 border-none rounded-full py-4 px-8 pl-14 focus:ring-2 focus:ring-mill-green/20 focus:bg-white transition-all duration-300 font-bold text-base"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-mill-green transition-colors" size={20} />
+              <button className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-mill-green text-white p-2.5 rounded-full hover:bg-mill-gold transition-colors">
+                <Search size={18} />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3 md:space-x-6">
+            <button className="p-3 text-slate-600 hover:bg-gray-100 rounded-full transition-colors hidden sm:block relative">
+              <GitCompare size={24} />
+              <span className="absolute top-1 right-1 w-5 h-5 bg-mill-gold text-white text-[10px] font-black rounded-full flex items-center justify-center">0</span>
+            </button>
+            <button className="p-3 text-slate-600 hover:bg-gray-100 rounded-full transition-colors hidden sm:block relative">
+              <Heart size={24} />
+              <span className="absolute top-1 right-1 w-5 h-5 bg-mill-gold text-white text-[10px] font-black rounded-full flex items-center justify-center">0</span>
+            </button>
+            <Link to="/login" className="p-3 text-slate-600 hover:bg-gray-100 rounded-full transition-colors flex items-center space-x-2">
+              <User size={24} />
+              <span className="hidden lg:inline text-sm font-black uppercase tracking-widest">Login</span>
+            </Link>
+            <Link to="/cart" className="relative p-3.5 bg-mill-green text-white rounded-full hover:bg-mill-gold transition-all duration-300 group shadow-lg shadow-mill-green/20">
+              <ShoppingBag size={24} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-secondary-red text-white text-[11px] font-black w-6 h-6 rounded-full flex items-center justify-center ring-2 ring-white">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+            <button onClick={() => setIsMenuOpen(true)} className="lg:hidden p-3 text-slate-600 hover:bg-gray-100 rounded-full">
+              <Menu size={24} />
+            </button>
+          </div>
+        </div>
+
+        <nav className="bg-white border-t border-gray-50 hidden lg:block">
+          <div className="container mx-auto px-4 flex items-center space-x-12 h-14">
+            <Link to="/" className="text-[13px] font-black uppercase tracking-widest text-mill-green hover:text-mill-gold transition-colors border-b-2 border-mill-green h-full flex items-center">Home</Link>
+            <a href="/#products" className="text-[13px] font-black uppercase tracking-widest text-slate-600 hover:text-mill-gold transition-colors h-full flex items-center">Shop</a>
+            <a href="/#process" className="text-[13px] font-black uppercase tracking-widest text-slate-600 hover:text-mill-gold transition-colors h-full flex items-center">Our Process</a>
+            <a href="/#about" className="text-[13px] font-black uppercase tracking-widest text-slate-600 hover:text-mill-gold transition-colors h-full flex items-center">About Us</a>
+            <a href="/#contact" className="text-[13px] font-black uppercase tracking-widest text-slate-600 hover:text-mill-gold transition-colors h-full flex items-center">Contact</a>
+            <div className="flex-1"></div>
+            <Link to="/bulk" className="text-[12px] font-black uppercase tracking-widest text-white bg-mill-gold px-6 py-2 rounded-full hover:bg-mill-green transition-all shadow-sm">Buy Bulk Tins (15kg)</Link>
+          </div>
+        </nav>
+      </div>
+
+      <div className={`fixed inset-0 bg-white z-[60] flex flex-col transition-all duration-500 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex justify-between items-center p-6 border-b">
+          <div className="flex items-center">
+            <img src="/logo.jpeg" alt="Logo" className="w-10 h-10" />
+            <span className="ml-3 font-black text-mill-green">MAHADEV</span>
+          </div>
+          <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-gray-100 rounded-full">
+            <X size={24} />
           </button>
+        </div>
+        <div className="flex-1 overflow-y-auto py-10 px-6 space-y-6 text-left">
+          <Link to="/" onClick={() => setIsMenuOpen(false)} className="block text-2xl font-black text-mill-green">Home</Link>
+          <a href="/#products" onClick={() => setIsMenuOpen(false)} className="block text-2xl font-black text-mill-green">Shop</a>
+          <a href="/#process" onClick={() => setIsMenuOpen(false)} className="block text-2xl font-black text-mill-green">Our Process</a>
+          <a href="/#about" onClick={() => setIsMenuOpen(false)} className="block text-2xl font-black text-mill-green">About Us</a>
+          <a href="/#contact" onClick={() => setIsMenuOpen(false)} className="block text-2xl font-black text-mill-green">Contact</a>
         </div>
       </div>
     </header>
   );
 };
 
-const TrustBar: React.FC = () => (
-  <div className="container mx-auto px-4 relative z-10 -mt-12">
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-      {[
-        { icon: Award, label: "Lab Tested Purity", color: "text-mill-green", bg: "bg-emerald-50/80" },
-        { icon: Leaf, label: "100% Organic", color: "text-mill-gold", bg: "bg-amber-50/80" },
-        { icon: Droplet, label: "Traditional Press", color: "text-orange-600", bg: "bg-orange-50/80" },
-        { icon: Truck, label: "Fast Shipping", color: "text-sky-600", bg: "bg-sky-50/80" }
-      ].map((item, i) => (
-        <div key={i} className="group bg-white/70 backdrop-blur-3xl p-8 rounded-[40px] shadow-2xl border border-white/80 flex flex-col items-center text-center space-y-5 hover:bg-white/95 hover:-translate-y-3 transition-all duration-700 ring-1 ring-black/5">
-          <div className={`w-20 h-20 ${item.bg} rounded-[30px] flex items-center justify-center ${item.color} shadow-inner group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 ring-4 ring-white`}>
-            <item.icon size={36} />
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-center space-x-1.5">
-              <Verified size={12} className="text-emerald-500 fill-emerald-50" />
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Verified</span>
+const CategorySection: React.FC = () => {
+  const categories = [
+    { name: 'Groundnut Oil', image: 'https://dmdecibmnmnquppjnzjo.supabase.co/storage/v1/object/public/product/5%20Kg.png', count: '6 Products' },
+  ];
+
+  return (
+    <section className="py-24 bg-white">
+      <div className="container mx-auto px-4 text-center">
+        <div className="mb-14">
+          <span className="text-mill-gold font-black uppercase tracking-widest text-sm mb-3 block">Premium Collection</span>
+          <h2 className="text-5xl font-black text-mill-green tracking-tight">Shop by Category</h2>
+        </div>
+        <div className="flex justify-center">
+          {categories.map((cat, i) => (
+            <div key={i} className="group cursor-pointer max-w-md w-full">
+              <div className="relative h-[500px] rounded-[50px] overflow-hidden mb-5 shadow-2xl bg-slate-50 border border-gray-100 flex items-center justify-center p-16 transition-all duration-700 hover:shadow-mill-green/10">
+                <img src={cat.image} alt={cat.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-1000 drop-shadow-2xl" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-200/50 via-transparent to-transparent pointer-events-none"></div>
+                <div className="absolute bottom-12 left-0 right-0 text-center z-10">
+                  <h3 className="text-4xl font-black leading-none mb-4 text-mill-green">{cat.name}</h3>
+                  <div className="inline-block px-8 py-2.5 bg-mill-green text-white text-xs font-black uppercase tracking-[0.2em] rounded-full shadow-lg">
+                    {cat.count}
+                  </div>
+                </div>
+              </div>
             </div>
-            <h4 className="text-sm font-black text-mill-green uppercase tracking-widest block leading-tight">{item.label}</h4>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const TrustBar: React.FC = () => (
+  <div className="bg-mill-green py-10">
+    <div className="container mx-auto px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className="flex items-center space-x-6 text-white bg-white/5 px-10 py-6 rounded-3xl border border-white/10 shadow-2xl">
+          <div className="p-4 bg-white/10 rounded-2xl">
+            <ShieldAlert size={36} className="text-mill-gold" />
+          </div>
+          <div className="text-left">
+            <h4 className="text-xl font-black uppercase tracking-widest leading-none mb-2">FSSAI Certified</h4>
+            <p className="text-sm font-bold text-white/50 uppercase tracking-tighter">100% Safe & Pure</p>
           </div>
         </div>
-      ))}
+        <div className="flex items-center space-x-6 text-white bg-white/5 px-10 py-6 rounded-3xl border border-white/10 shadow-2xl">
+          <div className="p-4 bg-white/10 rounded-2xl">
+            <Verified size={36} className="text-mill-gold" />
+          </div>
+          <div className="text-left">
+            <h4 className="text-xl font-black uppercase tracking-widest leading-none mb-2">Lab Tested</h4>
+            <p className="text-sm font-bold text-white/50 uppercase tracking-tighter">Chemical Free</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 );
@@ -141,94 +257,100 @@ const Home: React.FC<{
   products: Product[], 
   loading: boolean, 
   cartMessage: string,
-  productQuantities: Record<string, number>,
-  handleQuantityChange: (id: string, q: number) => void,
   handleAddToCart: (p: Product) => void
-}> = ({ products, loading, cartMessage, productQuantities, handleQuantityChange, handleAddToCart }) => (
+}> = ({ products, loading, cartMessage, handleAddToCart }) => (
   <div className="animate-fade-up">
     {/* Hero */}
-    <section id="home" className="relative h-[85vh] flex items-center overflow-hidden rounded-b-[80px] bg-transparent">
-      <div className="absolute inset-0 opacity-10 grayscale pointer-events-none scale-110">
-        <img src="/assets/peanut-farm.jpg" alt="Groundnut Oil" className="w-full h-full object-cover" />
-      </div>
-      
-      <div className="container mx-auto px-4 relative z-10 text-center lg:text-left">
-        <div className="max-w-3xl mx-auto lg:mx-0">
-          <div className="inline-flex items-center space-x-3 px-6 py-2 bg-mill-gold/10 text-mill-gold rounded-full mb-8 ring-1 ring-mill-gold/20 backdrop-blur-md">
-            <div className="w-2 h-2 bg-mill-gold rounded-full animate-pulse"></div>
-            <span className="text-[10px] font-black uppercase tracking-[0.4em]">Traditional Heritage Mill</span>
-          </div>
-          <h1 className="text-4xl md:text-7xl font-black text-mill-green leading-[1.1] tracking-tight mb-8">
-            Pure Goodness <br/>
-            <span className="text-mill-gold">in Every Drop.</span>
+    <section id="home" className="relative h-[75vh] flex items-center bg-slate-50 overflow-hidden">
+      <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 items-center gap-12 h-full">
+        <div className="z-10 text-left pt-12 lg:pt-0">
+          <h1 className="text-6xl md:text-8xl font-black text-mill-green leading-[1.1] tracking-tighter mb-10">
+            Purity You Can <br/>
+            <span className="text-mill-gold">Trust & Taste.</span>
           </h1>
-          <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-xl font-bold leading-relaxed opacity-80">
-            Experience the purest heritage groundnut oil, crafted with the patience of wood-pressing and the precision of cold extraction.
+          <p className="text-xl text-slate-500 mb-12 max-w-xl font-bold leading-relaxed">
+            Experience the essence of tradition with our 100% pure wood-pressed oils. No chemicals, no heat, just pure goodness.
           </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
-            <a href="#products" className="btn-primary group flex items-center justify-center space-x-4">
-              <span className="text-lg font-black uppercase tracking-widest">Shop Now</span>
-              <ShoppingBag size={22} className="group-hover:rotate-12 transition-transform" />
-            </a>
-            <a href="#process" className="btn-secondary text-lg font-black uppercase tracking-widest">Our Story</a>
+          <div className="flex flex-col sm:flex-row gap-6">
+            <a href="#products" className="bg-mill-green text-white px-10 py-5 rounded-full font-black uppercase tracking-widest hover:bg-mill-gold transition-all shadow-xl shadow-mill-green/20 text-base">Shop Now</a>
+            <a href="#about" className="bg-white border-2 border-mill-green text-mill-green px-10 py-5 rounded-full font-black uppercase tracking-widest hover:bg-mill-green hover:text-white transition-all text-base">Our Story</a>
           </div>
+        </div>
+        <div className="relative h-full hidden lg:flex items-center justify-center">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-mill-gold/5 rounded-full blur-3xl"></div>
+          <img src="/assets/peanut-oil-bottle.jpg" alt="Hero Oil" className="relative z-10 h-[85%] object-contain drop-shadow-[0_35px_35px_rgba(0,0,0,0.2)]" />
         </div>
       </div>
     </section>
 
     <TrustBar />
+    <CategorySection />
 
     {/* Products Section */}
-    <section id="products" className="py-40 container mx-auto px-4">
-      <div className="text-center max-w-3xl mx-auto mb-24">
-        <span className="text-mill-gold font-black uppercase tracking-widest text-xs mb-4 block">Fresh from the Mill</span>
-        <h2 className="text-5xl md:text-7xl font-black text-mill-green tracking-tighter">Premium Collection</h2>
-        <div className="h-2 w-24 bg-mill-gold mx-auto mt-8 rounded-full shadow-lg shadow-mill-gold/20"></div>
-      </div>
-
-      {loading ? (
-        <div className="flex flex-col items-center py-20">
-          <div className="w-16 h-16 border-[6px] border-mill-green/10 border-t-mill-green rounded-full animate-spin"></div>
+    <section id="products" className="py-28 bg-slate-50">
+      <div className="container mx-auto px-4 text-left">
+        <div className="flex justify-between items-end mb-20">
+          <div>
+            <span className="text-mill-gold font-black uppercase tracking-widest text-sm mb-3 block">Our Collection</span>
+            <h2 className="text-5xl md:text-7xl font-black text-mill-green tracking-tighter">Best Sellers</h2>
+          </div>
+          <div className="flex space-x-3">
+             <button className="p-4 bg-white rounded-full shadow-sm hover:bg-mill-green hover:text-white transition-all"><ChevronRight size={24} className="rotate-180" /></button>
+             <button className="p-4 bg-white rounded-full shadow-sm hover:bg-mill-green hover:text-white transition-all"><ChevronRight size={24} /></button>
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-          {products.map(product => (
-            <div key={product.id} className="card-premium group">
-              <div className="relative h-80 rounded-[30px] overflow-hidden mb-8 bg-gray-50 ring-1 ring-gray-100 shadow-inner">
-                <img src={product.image_url || '/assets/products.jpg'} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-[1s]" />
-                {product.tag && (
-                  <span className="absolute top-6 right-6 bg-mill-green text-white text-[9px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full shadow-2xl backdrop-blur-md ring-1 ring-white/20">
-                    {product.tag}
-                  </span>
-                )}
-              </div>
-              
-              <div className="space-y-6">
-                <div className="flex justify-between items-start">
-                  <h3 className="text-2xl font-black text-mill-green leading-none">{product.name}</h3>
-                  <div className="px-4 py-1.5 bg-mill-gold/10 text-mill-gold rounded-full text-[10px] font-black uppercase tracking-widest">{product.size}</div>
+
+        {loading ? (
+          <div className="flex flex-col items-center py-20">
+            <div className="w-16 h-16 border-[6px] border-mill-green/10 border-t-mill-green rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+            {products.map(product => (
+              <div key={product.id} className="bg-white rounded-[3rem] p-8 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-3 transition-all duration-500 group">
+                <div className="relative h-80 rounded-3xl overflow-hidden mb-8 bg-slate-50">
+                  <img src={product.image_url || '/assets/products.jpg'} alt={product.name} className="w-full h-full object-contain p-10 group-hover:scale-110 transition-transform duration-700" />
+                  {product.tag && (
+                    <span className="absolute top-6 right-6 bg-mill-gold text-white text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full">
+                      {product.tag}
+                    </span>
+                  )}
+                  <button className="absolute bottom-6 right-6 p-4 bg-white text-mill-green rounded-full shadow-lg opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                    <Heart size={22} />
+                  </button>
                 </div>
-                <p className="text-slate-500 font-bold text-sm leading-relaxed opacity-80">{product.description}</p>
                 
-                <div className="pt-6 flex items-center justify-between border-t border-gray-50">
-                  <div className="text-4xl font-black text-mill-green tracking-tighter">₹{product.price}</div>
-                  <div className="flex items-center space-x-3 bg-gray-100/50 p-2 rounded-2xl">
-                    <button onClick={() => handleQuantityChange(product.id, (productQuantities[product.id] || 1) - 1)} className="p-1 hover:bg-white rounded-lg transition-colors"><Minus size={14} /></button>
-                    <span className="w-8 text-center font-black text-mill-green">{productQuantities[product.id] ?? 1}</span>
-                    <button onClick={() => handleQuantityChange(product.id, (productQuantities[product.id] || 1) + 1)} className="p-1 hover:bg-white rounded-lg transition-colors"><Plus size={14} /></button>
+                <div className="space-y-6 text-left">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-[12px] font-black text-mill-gold uppercase tracking-[0.2em] mb-2">{product.category}</p>
+                      <h3 className="text-2xl font-black text-mill-green leading-none">{product.name}</h3>
+                    </div>
+                    <div className="text-sm font-black text-slate-400">{product.size}</div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-1.5">
+                    {[1,2,3,4,5].map(s => <Star key={s} size={14} className="text-mill-gold fill-mill-gold" />)}
+                    <span className="text-[12px] font-bold text-slate-400 ml-1.5">(4.8)</span>
+                  </div>
+
+                  <div className="pt-6 flex items-center justify-between border-t border-gray-50">
+                    <div>
+                      <span className="text-base text-slate-400 line-through mr-3 font-bold">₹{Math.round(product.price * 1.2)}</span>
+                      <span className="text-3xl font-black text-mill-green tracking-tighter">₹{product.price}</span>
+                    </div>
+                    <button onClick={() => handleAddToCart(product)} className="bg-mill-green text-white p-4 rounded-2xl hover:bg-mill-gold transition-all">
+                      <ShoppingBag size={24} />
+                    </button>
                   </div>
                 </div>
-                
-                <button onClick={() => handleAddToCart(product)} className="btn-primary w-full flex items-center justify-center space-x-3 py-5 rounded-[22px]">
-                  <ShoppingBag size={20} />
-                  <span className="text-lg font-black uppercase tracking-widest">Add to Bag</span>
-                </button>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </section>
+
 
     {/* From Field to Kitchen - Traditional Journey */}
     <section id="process" className="py-40 container mx-auto px-4 overflow-hidden">
@@ -315,31 +437,71 @@ const Home: React.FC<{
       </div>
     </section>
 
+    {/* Why Choose Us - Educational Section */}
+    <section className="py-24 bg-white">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center text-left">
+          <div>
+            <span className="text-mill-gold font-black uppercase tracking-widest text-sm mb-5 block">The Pure Choice</span>
+            <h2 className="text-5xl md:text-7xl font-black text-mill-green tracking-tighter mb-10 leading-tight">Why Our Wood-Pressed <br/> Oils are Better?</h2>
+            <div className="space-y-10">
+              {[
+                { title: "Preserved Nutrients", desc: "Unlike refined oils extracted at high heat, our wood-pressed method keeps vitamins and minerals intact." },
+                { title: "No Harmful Chemicals", desc: "We use zero solvents or preservatives. What you get is 100% natural seed extract." },
+                { title: "Heart Healthy", desc: "Our oils are naturally cholesterol-free and contain essential fatty acids for a healthy heart." }
+              ].map((item, i) => (
+                <div key={i} className="flex items-start space-x-8">
+                  <div className="w-16 h-16 bg-mill-gold/10 rounded-2xl flex items-center justify-center shrink-0">
+                    <CheckCircle className="text-mill-gold" size={32} />
+                  </div>
+                  <div>
+                    <h4 className="text-2xl font-black text-mill-green mb-3">{item.title}</h4>
+                    <p className="text-lg text-slate-500 font-bold leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="relative">
+            <div className="aspect-square rounded-[80px] overflow-hidden shadow-2xl">
+              <img src="/assets/peanut-process.jpg" alt="Process" className="w-full h-full object-cover" />
+            </div>
+            <div className="absolute -bottom-10 -left-10 bg-mill-green p-12 rounded-[50px] shadow-2xl hidden md:block text-left">
+              <p className="text-white font-black text-5xl mb-3">24/7</p>
+              <p className="text-white/60 font-bold uppercase tracking-widest text-[12px]">Quality Monitoring</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     {/* About Section */}
     <section id="about" className="py-40 container mx-auto px-4">
-      <div className="section-glass p-16 md:p-24 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-mill-gold/5 rounded-full -mr-48 -mt-48 blur-3xl"></div>
+      <div className="section-glass p-16 md:p-32 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-mill-gold/5 rounded-full -mr-64 -mt-64 blur-[120px]"></div>
         <div className="relative z-10">
-          <div className="text-center max-w-2xl mx-auto mb-20">
-            <h2 className="text-5xl font-black text-mill-green mb-6 tracking-tighter uppercase tracking-widest">Trusted by Families</h2>
-            <p className="text-slate-500 font-bold text-lg italic opacity-70">"Purity is not just a standard, it's our promise."</p>
+          <div className="text-center max-w-4xl mx-auto mb-24">
+            <h2 className="text-6xl font-black text-mill-green mb-10 tracking-tighter uppercase tracking-widest">About Us</h2>
+            <p className="text-slate-500 font-bold text-2xl italic opacity-70 leading-relaxed">"Purity is not just a standard, it's our promise."</p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {[
-              { name: "Rajesh Patel", location: "Anand", comment: "The aroma takes me back to my childhood. Truly authentic wood-pressed oil. Best in class quality." },
-              { name: "Sneha Shah", location: "Vadodara", comment: "Using it for 6 months now. Consistent quality and excellent packaging. Highly recommended." }
+              { comment: "The aroma of this wood-pressed oil is truly authentic. It has completely transformed the taste of our traditional Gujarati dishes. Best in class quality!" },
+              { comment: "We have been using Mahadev Oil for over a year now. The purity and consistency are unmatched. Highly recommended for any health-conscious family." }
             ].map((t, i) => (
-              <div key={i} className="p-12 bg-white/40 backdrop-blur-md rounded-[40px] border border-white/60 shadow-xl group hover:bg-white/60 transition-all duration-500">
-                <div className="flex space-x-1 mb-8">
-                  {[1,2,3,4,5].map(s => <Star key={s} size={18} className="text-mill-gold fill-mill-gold" />)}
+              <div key={i} className="p-16 bg-white/40 backdrop-blur-md rounded-[60px] border border-white/60 shadow-xl group hover:bg-white/60 transition-all duration-500 text-left">
+                <div className="flex space-x-2 mb-10">
+                  {[1,2,3,4,5].map(s => <Star key={s} size={24} className="text-mill-gold fill-mill-gold" />)}
                 </div>
-                <p className="text-2xl font-bold text-mill-green italic mb-10 leading-relaxed group-hover:scale-[1.02] transition-transform">"{t.comment}"</p>
-                <div className="flex items-center space-x-6">
-                  <div className="w-16 h-16 bg-mill-green rounded-[22px] flex items-center justify-center text-white font-black text-2xl shadow-lg ring-4 ring-white/50">{t.name[0]}</div>
+                <p className="text-3xl font-bold text-mill-green italic mb-12 leading-relaxed group-hover:scale-[1.02] transition-transform">"{t.comment}"</p>
+                <div className="flex items-center space-x-8">
+                  <div className="w-20 h-20 bg-mill-green rounded-[28px] flex items-center justify-center text-white font-black text-3xl shadow-lg ring-4 ring-white/50">
+                    <Heart size={32} className="fill-white" />
+                  </div>
                   <div>
-                    <h4 className="text-xl font-black text-mill-green leading-none">{t.name}</h4>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t.location}</span>
+                    <h4 className="text-2xl font-black text-mill-green leading-none mb-1">Trusted by Families</h4>
+                    <span className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em]">Verified Review</span>
                   </div>
                 </div>
               </div>
@@ -350,9 +512,9 @@ const Home: React.FC<{
     </section>
 
     {cartMessage && (
-      <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] bg-mill-green text-white px-10 py-5 rounded-[30px] shadow-2xl flex items-center space-x-4 border-[6px] border-white/20 animate-fade-up backdrop-blur-xl">
-        <CheckCircle size={28} className="text-emerald-400" />
-        <span className="font-black uppercase tracking-[0.2em] text-xs font-black">{cartMessage}</span>
+      <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] bg-mill-green text-white px-12 py-6 rounded-[40px] shadow-2xl flex items-center space-x-6 border-[8px] border-white/20 animate-fade-up backdrop-blur-xl">
+        <CheckCircle size={36} className="text-emerald-400" />
+        <span className="font-black uppercase tracking-[0.2em] text-sm font-black">{cartMessage}</span>
       </div>
     )}
   </div>
@@ -378,7 +540,7 @@ const Cart: React.FC<{
           <ShoppingBag size={80} />
         </div>
         <h2 className="text-5xl font-black text-mill-green mb-6 tracking-tighter uppercase tracking-[0.1em]">Bag is empty</h2>
-        <p className="text-xl text-slate-500 font-bold mb-12 opacity-70">Pure goodness is just a few clicks away.</p>
+        <p className="text-2xl text-slate-500 font-bold mb-12 opacity-70">Pure goodness is just a few clicks away.</p>
         <Link to="/" className="btn-primary text-xl px-12 uppercase tracking-widest font-black">Return to Mill</Link>
       </div>
     );
@@ -386,76 +548,76 @@ const Cart: React.FC<{
 
   return (
     <div className="container mx-auto px-4 py-20 animate-fade-up">
-      <button onClick={() => navigate(-1)} className="flex items-center space-x-3 text-slate-400 hover:text-mill-green transition-all mb-16 group">
-        <div className="p-3 bg-white/50 backdrop-blur-lg rounded-2xl shadow-lg ring-1 ring-white/50 group-hover:scale-110 transition-transform">
-          <ArrowLeft size={24} />
+      <button onClick={() => navigate(-1)} className="flex items-center space-x-4 text-slate-400 hover:text-mill-green transition-all mb-16 group">
+        <div className="p-4 bg-white/50 backdrop-blur-lg rounded-2xl shadow-lg ring-1 ring-white/50 group-hover:scale-110 transition-transform">
+          <ArrowLeft size={28} />
         </div>
-        <span className="font-black uppercase tracking-[0.3em] text-[10px]">Continue Shopping</span>
+        <span className="font-black uppercase tracking-[0.3em] text-[12px]">Continue Shopping</span>
       </button>
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-20 items-start">
-        <div className="lg:col-span-7 space-y-8">
-          <h2 className="text-4xl font-black text-mill-green mb-12 flex items-center space-x-6">
+        <div className="lg:col-span-7 space-y-10">
+          <h2 className="text-5xl font-black text-mill-green mb-14 flex items-center space-x-8">
             <span>Your Bag</span>
-            <span className="text-lg bg-mill-gold text-white px-5 py-1.5 rounded-full shadow-lg font-black">{cartItems.length}</span>
+            <span className="text-xl bg-mill-gold text-white px-6 py-2 rounded-full shadow-lg font-black">{cartItems.length}</span>
           </h2>
           
           {cartItems.map(item => (
-            <div key={item.product.id} className="bg-white/40 backdrop-blur-xl p-8 rounded-[45px] shadow-xl border border-white/60 flex flex-col sm:flex-row items-center gap-10 group hover:bg-white/60 transition-all duration-500">
-              <div className="w-32 h-32 bg-white rounded-[30px] overflow-hidden shadow-2xl ring-4 ring-white group-hover:rotate-3 transition-transform">
+            <div key={item.product.id} className="bg-white/40 backdrop-blur-xl p-10 rounded-[60px] shadow-xl border border-white/60 flex flex-col sm:flex-row items-center gap-12 group hover:bg-white/60 transition-all duration-500">
+              <div className="w-40 h-40 bg-white rounded-[40px] overflow-hidden shadow-2xl ring-4 ring-white group-hover:rotate-3 transition-transform">
                 <img src={item.product.image_url || '/assets/products.jpg'} alt={item.product.name} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 text-center sm:text-left">
-                <h3 className="text-2xl font-black text-mill-green mb-2 tracking-tight">{item.product.name}</h3>
-                <span className="text-[10px] font-black text-mill-gold uppercase tracking-[0.3em]">{item.product.size}</span>
-                <div className="mt-6 flex items-center justify-center sm:justify-start space-x-6">
-                  <div className="flex items-center space-x-4 bg-white/80 p-2 rounded-[18px] shadow-inner ring-1 ring-black/5">
-                    <button onClick={() => updateCartQuantity(item.product.id, -1)} className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors"><Minus size={16} /></button>
-                    <span className="w-8 text-center font-black text-xl text-mill-green">{item.quantity}</span>
-                    <button onClick={() => updateCartQuantity(item.product.id, 1)} className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors"><Plus size={16} /></button>
+                <h3 className="text-3xl font-black text-mill-green mb-3 tracking-tight">{item.product.name}</h3>
+                <span className="text-sm font-black text-mill-gold uppercase tracking-[0.3em]">{item.product.size}</span>
+                <div className="mt-8 flex items-center justify-center sm:justify-start space-x-8">
+                  <div className="flex items-center space-x-6 bg-white/80 p-3 rounded-[24px] shadow-inner ring-1 ring-black/5">
+                    <button onClick={() => updateCartQuantity(item.product.id, -1)} className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors"><Minus size={20} /></button>
+                    <span className="w-10 text-center font-black text-2xl text-mill-green">{item.quantity}</span>
+                    <button onClick={() => updateCartQuantity(item.product.id, 1)} className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors"><Plus size={20} /></button>
                   </div>
-                  <button onClick={() => removeFromCart(item.product.id)} className="text-slate-300 hover:text-secondary-red transition-all p-3 hover:scale-110"><Trash2 size={24} /></button>
+                  <button onClick={() => removeFromCart(item.product.id)} className="text-slate-300 hover:text-secondary-red transition-all p-4 hover:scale-110"><Trash2 size={28} /></button>
                 </div>
               </div>
-              <div className="text-3xl font-black text-mill-green tracking-tighter">₹{item.product.price * item.quantity}</div>
+              <div className="text-4xl font-black text-mill-green tracking-tighter">₹{item.product.price * item.quantity}</div>
             </div>
           ))}
         </div>
 
-        <div className="lg:col-span-5 section-glass p-12 shadow-2xl sticky top-32 text-left">
-          <h3 className="text-3xl font-black text-mill-green mb-10 tracking-tight uppercase tracking-widest">Delivery Info</h3>
+        <div className="lg:col-span-5 section-glass p-14 shadow-2xl sticky top-32 text-left">
+          <h3 className="text-4xl font-black text-mill-green mb-12 tracking-tight uppercase tracking-widest">Delivery Info</h3>
           
-          <div className="space-y-6 mb-12">
-            <input type="text" placeholder="Full Name" className="form-input" value={guestInfo.name} onChange={e => setGuestInfo({...guestInfo, name: e.target.value})} />
-            <input type="tel" placeholder="Phone Number" className="form-input" value={guestInfo.phone} onChange={e => setGuestInfo({...guestInfo, phone: e.target.value})} />
-            <input type="text" placeholder="Complete Address" className="form-input" value={guestInfo.address} onChange={e => setGuestInfo({...guestInfo, address: e.target.value})} />
-            <div className="grid grid-cols-2 gap-6">
-              <input type="text" placeholder="City" className="form-input" value={guestInfo.city} onChange={e => setGuestInfo({...guestInfo, city: e.target.value})} />
-              <input type="text" placeholder="Pincode" className="form-input" value={guestInfo.pincode} onChange={e => setGuestInfo({...guestInfo, pincode: e.target.value})} />
+          <div className="space-y-8 mb-14">
+            <input type="text" placeholder="Full Name" className="form-input text-lg py-5" value={guestInfo.name} onChange={e => setGuestInfo({...guestInfo, name: e.target.value})} />
+            <input type="tel" placeholder="Phone Number" className="form-input text-lg py-5" value={guestInfo.phone} onChange={e => setGuestInfo({...guestInfo, phone: e.target.value})} />
+            <input type="text" placeholder="Complete Address" className="form-input text-lg py-5" value={guestInfo.address} onChange={e => setGuestInfo({...guestInfo, address: e.target.value})} />
+            <div className="grid grid-cols-2 gap-8">
+              <input type="text" placeholder="City" className="form-input text-lg py-5" value={guestInfo.city} onChange={e => setGuestInfo({...guestInfo, city: e.target.value})} />
+              <input type="text" placeholder="Pincode" className="form-input text-lg py-5" value={guestInfo.pincode} onChange={e => setGuestInfo({...guestInfo, pincode: e.target.value})} />
             </div>
           </div>
           
-          <div className="border-t-4 border-dashed border-mill-green/5 pt-10 space-y-5 mb-10">
-            <div className="flex justify-between text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">
+          <div className="border-t-4 border-dashed border-mill-green/5 pt-12 space-y-6 mb-12">
+            <div className="flex justify-between text-slate-400 font-black uppercase tracking-[0.2em] text-sm">
               <span>Cart Total</span>
               <span>₹{total}</span>
             </div>
-            <div className="flex justify-between text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">
+            <div className="flex justify-between text-slate-400 font-black uppercase tracking-[0.2em] text-sm">
               <span>Shipping</span>
-              <span className="text-emerald-500">Free of Cost</span>
+              <span className="text-emerald-500 font-black">Free of Cost</span>
             </div>
-            <div className="flex justify-between items-center pt-6">
-              <span className="text-2xl font-black text-mill-green">Grand Total</span>
-              <span className="text-4xl font-black text-mill-green tracking-tighter">₹{total}</span>
+            <div className="flex justify-between items-center pt-8">
+              <span className="text-3xl font-black text-mill-green">Grand Total</span>
+              <span className="text-5xl font-black text-mill-green tracking-tighter">₹{total}</span>
             </div>
           </div>
 
-          <button className="btn-primary w-full py-6 text-xl tracking-[0.2em] uppercase font-black rounded-[25px]" onClick={handleCheckout} disabled={checkoutLoading}>
+          <button className="btn-primary w-full py-7 text-2xl tracking-[0.2em] uppercase font-black rounded-[30px]" onClick={handleCheckout} disabled={checkoutLoading}>
             {checkoutLoading ? 'Processing...' : 'Pay with Razorpay'}
           </button>
           
           {checkoutMessage && (
-            <div className={`mt-8 p-4 rounded-2xl text-center text-[10px] font-black uppercase tracking-[0.3em] backdrop-blur-md ${checkoutMessage.includes('Success') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-secondary-red'}`}>
+            <div className={`mt-10 p-6 rounded-3xl text-center text-sm font-black uppercase tracking-[0.3em] backdrop-blur-md ${checkoutMessage.includes('Success') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-secondary-red'}`}>
               {checkoutMessage}
             </div>
           )}
@@ -467,80 +629,190 @@ const Cart: React.FC<{
 
 const Success: React.FC = () => (
   <div className="container mx-auto px-4 py-40 flex flex-col items-center justify-center min-h-[80vh] text-center animate-fade-up">
-    <div className="w-40 h-40 bg-emerald-50 rounded-[40px] flex items-center justify-center text-emerald-500 mb-10 shadow-2xl ring-8 ring-white">
-      <CheckCircle size={80} />
+    <div className="w-48 h-48 bg-emerald-50 rounded-[50px] flex items-center justify-center text-emerald-500 mb-12 shadow-2xl ring-8 ring-white">
+      <CheckCircle size={100} />
     </div>
-    <h2 className="text-6xl md:text-8xl font-black text-mill-green mb-8 tracking-tighter">Payment Received!</h2>
-    <p className="text-2xl text-slate-500 font-bold max-w-2xl mb-16 leading-relaxed opacity-80">
+    <h2 className="text-7xl md:text-9xl font-black text-mill-green mb-10 tracking-tighter">Payment Received!</h2>
+    <p className="text-3xl text-slate-500 font-bold max-w-3xl mb-20 leading-relaxed opacity-80">
       Your journey to healthy cooking begins. We've confirmed your order and will dispatch your pure wood-pressed oil within 24 hours.
     </p>
-    <Link to="/" className="btn-primary text-xl px-12 uppercase tracking-widest font-black">Back to Shop</Link>
+    <Link to="/" className="btn-primary text-2xl px-16 py-6 uppercase tracking-widest font-black">Back to Shop</Link>
   </div>
 );
 
 // --- Footer ---
 
 const Footer: React.FC = () => (
-  <footer id="contact" className="bg-mill-green pt-40 pb-16 rounded-t-[100px] text-white overflow-hidden relative mt-20">
-    <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
-      <img src="/assets/peanut-hero.jpg" alt="" className="w-full h-full object-cover grayscale" />
-    </div>
-    <div className="container mx-auto px-4 relative z-10">
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-20 mb-32 text-left">
-        <div className="md:col-span-5">
-          <div className="flex items-center space-x-6 mb-12">
-            <div className="w-20 h-20 bg-white rounded-[25px] p-2 shadow-2xl ring-8 ring-white/5">
-              <img src="/logo.jpeg" alt="Mahadev Oil Mill" className="w-full h-full object-contain" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-black tracking-tighter leading-none">MAHADEV</h1>
-              <span className="text-[10px] font-black text-mill-gold uppercase tracking-[0.4em]">TRADITIONAL MILL</span>
+  <footer id="contact" className="bg-[#0f2a1f] pt-32 pb-16 text-white mt-20">
+    <div className="container mx-auto px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-24 text-left">
+        <div>
+          <div className="flex items-center space-x-5 mb-10">
+            <img src="/logo.jpeg" alt="Logo" className="w-16 h-16 rounded-2xl bg-white p-1.5 shadow-xl" />
+            <h1 className="leading-none">
+              <span className="text-4xl font-black tracking-tighter block text-white">MAHADEV</span>
+              <span className="text-[12px] text-mill-gold uppercase tracking-[0.4em] font-black mt-1 block">Traditional Oil Mill</span>
+            </h1>
+          </div>
+          <p className="text-white/50 font-bold text-base leading-relaxed mb-10">
+            Bringing back the traditional purity of wood-pressed oils to every kitchen. Experience health in every drop.
+          </p>
+          <div className="flex space-x-6">
+            <a href="#" className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center hover:bg-mill-gold transition-colors"><MessageCircle size={22} /></a>
+            <a href="#" className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center hover:bg-mill-gold transition-colors"><Heart size={22} /></a>
+          </div>
+        </div>
+        
+        <div>
+          <h4 className="text-sm font-black uppercase tracking-[0.2em] text-mill-gold mb-10">Contact Us</h4>
+          <ul className="space-y-6 text-white/60 font-bold text-base">
+            <li className="flex items-start space-x-4">
+              <MapPin size={20} className="text-mill-gold shrink-0 mt-1" />
+              <span>902, NAGARDAS NI KHADKI, NR. RAMJI MANDIR, VASAD 388306 TA & DI : ANAND</span>
+            </li>
+            <li className="flex items-center space-x-4">
+              <Phone size={20} className="text-mill-gold shrink-0" />
+              <span>+91 98799 44395</span>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-black uppercase tracking-[0.2em] text-mill-gold mb-10">Customer Service</h4>
+          <ul className="space-y-5 text-white/60 font-bold text-base">
+            <li><Link to="/track" className="hover:text-white transition-colors">Track Order</Link></li>
+            <li><Link to="/shipping" className="hover:text-white transition-colors">Shipping Policy</Link></li>
+            <li><Link to="/returns" className="hover:text-white transition-colors">Returns & Refunds</Link></li>
+            <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+            <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-sm font-black uppercase tracking-[0.2em] text-mill-gold mb-10">Newsletter</h4>
+          <p className="text-white/50 font-bold text-sm mb-8">Subscribe to get special offers and pure health tips.</p>
+          <div className="flex">
+            <input type="email" placeholder="Your Email" className="bg-white/5 border-none rounded-l-2xl py-4 px-6 text-base focus:ring-1 focus:ring-mill-gold w-full" />
+            <button className="bg-mill-gold text-white px-6 rounded-r-2xl hover:bg-white hover:text-mill-green transition-all">
+              <ChevronRight size={24} />
+            </button>
+          </div>
+          <div className="mt-12">
+            <h5 className="text-[12px] font-black uppercase tracking-widest text-white/30 mb-5">Also available on</h5>
+            <div className="flex gap-6 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all cursor-not-allowed">
+              <span className="font-black text-sm tracking-tighter">ZEPTO</span>
+              <span className="font-black text-sm tracking-tighter">BLINKIT</span>
+              <span className="font-black text-sm tracking-tighter">SWIGGY</span>
             </div>
           </div>
-          <p className="text-emerald-50/60 font-bold text-xl leading-relaxed max-w-md">
-            Purity is our legacy. We are dedicated to providing your family with the healthiest, wood-pressed oils just as nature intended.
-          </p>
-        </div>
-        
-        <div className="md:col-span-3">
-          <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-mill-gold mb-12">Quick Links</h4>
-          <ul className="grid grid-cols-1 gap-4 font-black text-lg">
-            <li><a href="/#home" className="text-white/60 hover:text-white transition-all hover:pl-2 flex items-center space-x-2"><span>Home</span></a></li>
-            <li><a href="/#products" className="text-white/60 hover:text-white transition-all hover:pl-2 flex items-center space-x-2"><span>Products</span></a></li>
-            <li><a href="/#process" className="text-white/60 hover:text-white transition-all hover:pl-2 flex items-center space-x-2"><span>Our Process</span></a></li>
-            <li><a href="/#about" className="text-white/60 hover:text-white transition-all hover:pl-2 flex items-center space-x-2"><span>About Us</span></a></li>
-            <li><a href="/#contact" className="text-white/60 hover:text-white transition-all hover:pl-2 flex items-center space-x-2"><span>Contact</span></a></li>
-          </ul>
-        </div>
-        
-        <div className="md:col-span-4">
-          <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-mill-gold mb-12">Visit Our Mill</h4>
-          <ul className="space-y-8 text-white/70 font-bold">
-            <li className="flex items-start space-x-6 group">
-              <div className="p-4 bg-white/5 rounded-2xl group-hover:bg-mill-gold transition-colors text-mill-gold group-hover:text-white shadow-xl"><MapPin size={24} /></div>
-              <span className="text-xl leading-snug">902, Nagardas Ni Khadki, Vasad, Gujarat - 388306</span>
-            </li>
-            <li className="flex items-center space-x-6 group">
-              <div className="p-4 bg-white/5 rounded-2xl group-hover:bg-mill-gold transition-colors text-mill-gold group-hover:text-white shadow-xl"><Phone size={24} /></div>
-              <span className="text-xl">+91 98799 44395</span>
-            </li>
-          </ul>
         </div>
       </div>
       
-      <div className="border-t border-white/10 pt-16 flex flex-col md:flex-row justify-between items-center gap-10">
-        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em]">© 2026 Mahadev Oil Mill • Pure Heritage</p>
-        <div className="flex space-x-12">
-          <a href="https://wa.me/919879944395" className="w-16 h-16 bg-white/5 rounded-[22px] flex items-center justify-center hover:bg-[#25d366] transition-all hover:scale-110 text-white shadow-2xl shadow-green-500/20"><MessageCircle size={28} /></a>
+      <div className="border-t border-white/5 pt-12 flex flex-col md:flex-row justify-between items-center gap-8">
+        <p className="text-[12px] font-bold text-white/20 uppercase tracking-widest">© 2026 Mahadev Oil Mill. All rights reserved.</p>
+        <div className="flex items-center space-x-10">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="Paypal" className="h-5 opacity-30" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-8 opacity-30" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-5 opacity-30" />
         </div>
       </div>
     </div>
   </footer>
 );
 
+const Login: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const navigate = useNavigate();
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage('');
+    try {
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        setMessage('Check your email for the confirmation link!');
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        navigate('/');
+      }
+    } catch (err: any) {
+      setMessage(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-32 flex justify-center items-center min-h-[70vh]">
+      <div className="bg-white p-12 rounded-[50px] shadow-2xl border border-gray-100 w-full max-w-xl text-left">
+        <h2 className="text-5xl font-black text-mill-green mb-4 tracking-tighter">
+          {isSignUp ? 'Create Account' : 'Welcome Back'}
+        </h2>
+        <p className="text-slate-500 font-bold mb-10 text-lg">
+          {isSignUp ? 'Join the Mahadev Oil Mill family.' : 'Sign in to access your orders and profile.'}
+        </p>
+        
+        <form onSubmit={handleAuth} className="space-y-6">
+          <div>
+            <label className="block text-sm font-black text-mill-green uppercase tracking-widest mb-3">Email Address</label>
+            <input 
+              type="email" 
+              className="form-input text-lg py-5" 
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-black text-mill-green uppercase tracking-widest mb-3">Password</label>
+            <input 
+              type="password" 
+              className="form-input text-lg py-5" 
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          
+          <button 
+            type="submit" 
+            className="btn-primary w-full py-6 text-xl tracking-widest uppercase font-black rounded-[25px] mt-4"
+            disabled={loading}
+          >
+            {loading ? 'Processing...' : (isSignUp ? 'Sign Up' : 'Login')}
+          </button>
+        </form>
+
+        {message && (
+          <div className={`mt-8 p-4 rounded-2xl text-center text-sm font-black uppercase tracking-widest ${message.includes('Check your email') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-secondary-red'}`}>
+            {message}
+          </div>
+        )}
+
+        <div className="mt-10 pt-8 border-t border-gray-50 text-center">
+          <button 
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="text-mill-green font-black uppercase tracking-widest text-sm hover:text-mill-gold transition-colors"
+          >
+            {isSignUp ? 'Already have an account? Login' : "Don't have an account? Sign Up"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(fallbackProducts);
-  const [productQuantities, setProductQuantities] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -567,10 +839,6 @@ const App: React.FC = () => {
     supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
   }, []);
 
-  const handleQuantityChange = (productId: string, quantity: number) => {
-    setProductQuantities(prev => ({ ...prev, [productId]: Math.max(1, quantity) }));
-  };
-
   const updateCartQuantity = (productId: string, delta: number) => {
     setCartItems(prev => prev.map(item => 
       item.product.id === productId ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
@@ -582,7 +850,7 @@ const App: React.FC = () => {
   };
 
   const handleAddToCart = (product: Product) => {
-    const quantity = productQuantities[product.id] ?? 1;
+    const quantity = 1;
     setCartItems(prev => {
       const existing = prev.find(item => item.product.id === product.id);
       if (existing) {
@@ -631,13 +899,14 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Home 
               products={products} loading={loading} cartMessage={cartMessage}
-              productQuantities={productQuantities} handleQuantityChange={handleQuantityChange} handleAddToCart={handleAddToCart}
+              handleAddToCart={handleAddToCart}
             />} />
             <Route path="/cart" element={<Cart 
               cartItems={cartItems} updateCartQuantity={updateCartQuantity} removeFromCart={removeFromCart}
               guestInfo={guestInfo} setGuestInfo={setGuestInfo} handleCheckout={handleCheckout}
               checkoutLoading={checkoutLoading} checkoutMessage={checkoutMessage}
             />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/success" element={<Success />} />
           </Routes>
         </main>
