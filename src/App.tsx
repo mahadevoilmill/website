@@ -73,10 +73,14 @@ const fallbackProducts: Product[] = [
 const TopBar: React.FC = () => (
   <div className="bg-slate-50 border-b border-gray-200 py-3 hidden md:block">
     <div className="container mx-auto px-4 flex justify-between items-center text-sm font-bold text-slate-600">
-      <div className="flex items-center space-x-8">
+      <div className="flex items-center space-x-6">
         <a href="tel:+919879944395" className="flex items-center space-x-2 hover:text-mill-green transition-colors">
           <Phone size={16} className="text-mill-gold" />
-          <span>+91 98799 44395</span>
+          <span className="text-xs">Rakesh: +91 98799 44395</span>
+        </a>
+        <a href="tel:+918849735425" className="flex items-center space-x-2 hover:text-mill-green transition-colors">
+          <Phone size={16} className="text-mill-gold" />
+          <span className="text-xs">Nimesh: +91 88497 35425</span>
         </a>
         <div className="flex items-center space-x-2">
           <MapPin size={16} className="text-mill-gold" />
@@ -912,8 +916,12 @@ const Footer: React.FC = () => (
             Bringing back the traditional purity of cold pressed oils to every kitchen. Experience health in every drop.
           </p>
           <div className="flex space-x-6">
-            <a href="#" className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center hover:bg-mill-gold transition-colors"><MessageCircle size={22} /></a>
-            <a href="#" className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center hover:bg-mill-gold transition-colors"><Heart size={22} /></a>
+            <a href="https://facebook.com/mahadevoilmill" target="_blank" rel="noreferrer" className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center hover:bg-mill-gold transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            </a>
+            <a href="https://instagram.com/mahadevoilmill" target="_blank" rel="noreferrer" className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center hover:bg-mill-gold transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
           </div>
         </div>
         
@@ -926,7 +934,14 @@ const Footer: React.FC = () => (
             </li>
             <li className="flex items-center space-x-4">
               <Phone size={20} className="text-mill-gold shrink-0" />
-              <span>+91 98799 44395</span>
+              <div className="flex flex-col">
+                <a href="tel:+919879944395" className="hover:text-white transition-colors">Rakesh: +91 98799 44395</a>
+                <a href="tel:+918849735425" className="hover:text-white transition-colors">Nimesh: +91 88497 35425</a>
+              </div>
+            </li>
+            <li className="flex items-center space-x-4">
+              <Phone size={20} className="text-mill-gold shrink-0" />
+              <span>Customer Care: +91 98982 80209</span>
             </li>
           </ul>
         </div>
@@ -1184,6 +1199,12 @@ const App: React.FC = () => {
           <button onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })} className="w-14 h-14 bg-white text-mill-green rounded-full shadow-lg hover:bg-mill-green hover:text-white transition-all flex items-center justify-center border border-gray-100">
             <ChevronDown size={24} />
           </button>
+          <a href="https://facebook.com/mahadevoilmill" target="_blank" rel="noreferrer" className="w-14 h-14 bg-[#1877F2] text-white rounded-full shadow-lg hover:scale-110 transition-all flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </a>
+          <a href="https://instagram.com/mahadevoilmill" target="_blank" rel="noreferrer" className="w-14 h-14 bg-[#E4405F] text-white rounded-full shadow-lg hover:scale-110 transition-all flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
           <a href="https://wa.me/919879944395" className="bg-[#25D366] text-white rounded-full shadow-lg hover:scale-110 transition-all flex items-center justify-center shadow-[0_6px_24px_rgba(37,211,102,0.4)] hover:shadow-[0_8px_32px_rgba(37,211,102,0.6)] px-6 py-3 space-x-3" target="_blank" rel="noreferrer">
             <MessageCircle size={24} />
             <span className="font-black text-sm whitespace-nowrap">Order / ઓર્ડેર માટે</span>
