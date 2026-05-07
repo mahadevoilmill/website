@@ -280,7 +280,7 @@ const Home: React.FC<{
         </div>
         <div className="relative h-full hidden lg:flex items-center justify-center">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-mill-gold/5 rounded-full blur-3xl"></div>
-          <img src="/assets/process.jpg" alt="Oil Mill" className="relative z-10 h-[85%] object-contain drop-shadow-[0_35px_35px_rgba(0,0,0,0.2)]" />
+          <img src="/assets/peanut-farm.jpg" alt="Peanut Farm" className="relative z-10 h-[85%] object-contain drop-shadow-[0_35px_35px_rgba(0,0,0,0.2)]" />
         </div>
       </div>
     </section>
