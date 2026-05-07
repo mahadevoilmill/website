@@ -29,7 +29,8 @@ import {
   Search,
   User,
   GitCompare,
-  ChevronDown
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
@@ -252,8 +253,10 @@ const Home: React.FC<{
   products: Product[], 
   loading: boolean, 
   cartMessage: string,
-  handleAddToCart: (p: Product) => void
-}> = ({ products, loading, cartMessage, handleAddToCart }) => (
+  handleAddToCart: (p: Product) => void,
+  wishlist: string[],
+  toggleWishlist: (id: string) => void
+}> = ({ products, loading, cartMessage, handleAddToCart, wishlist, toggleWishlist }) => (
   <div className="animate-fade-up">
     {/* Hero */}
     <section id="home" className="relative h-[75vh] flex items-center bg-slate-50 overflow-hidden">
@@ -334,9 +337,14 @@ const Home: React.FC<{
                       <span className="text-base text-slate-400 line-through mr-3 font-bold">₹{Math.round(product.price * 1.2)}</span>
                       <span className="text-3xl font-black text-mill-green tracking-tighter">₹{product.price}</span>
                     </div>
-                    <button onClick={() => handleAddToCart(product)} className="bg-mill-green text-white p-4 rounded-2xl hover:bg-mill-gold transition-all">
-                      <ShoppingBag size={24} />
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      <button onClick={() => toggleWishlist(product.id)} className={`p-4 rounded-2xl transition-all ${wishlist.includes(product.id) ? 'bg-red-50 text-red-500' : 'bg-slate-50 text-slate-400 hover:text-red-400 hover:bg-red-50'}`}>
+                        <Heart size={22} className={wishlist.includes(product.id) ? 'fill-red-500' : ''} />
+                      </button>
+                      <button onClick={() => handleAddToCart(product)} className="bg-mill-green text-white p-4 rounded-2xl hover:bg-mill-gold transition-all">
+                        <ShoppingBag size={24} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -506,6 +514,22 @@ const Home: React.FC<{
       </div>
     </section>
 
+    {/* FAQ & Contact Buttons */}
+    <section className="py-24 bg-white">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+          <Link to="/faq" className="bg-mill-green text-white px-12 py-6 rounded-full font-black uppercase tracking-widest hover:bg-mill-gold transition-all shadow-xl shadow-mill-green/20 text-base flex items-center space-x-4">
+            <span>FAQs</span>
+            <ChevronRight size={24} />
+          </Link>
+          <a href="#contact" className="bg-white border-2 border-mill-green text-mill-green px-12 py-6 rounded-full font-black uppercase tracking-widest hover:bg-mill-green hover:text-white transition-all text-base flex items-center space-x-4">
+            <span>Contact Us</span>
+            <ChevronRight size={24} />
+          </a>
+        </div>
+      </div>
+    </section>
+
     {cartMessage && (
       <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] bg-mill-green text-white px-12 py-6 rounded-[40px] shadow-2xl flex items-center space-x-6 border-[8px] border-white/20 animate-fade-up backdrop-blur-xl">
         <CheckCircle size={36} className="text-emerald-400" />
@@ -622,6 +646,241 @@ const Cart: React.FC<{
   );
 };
 
+const Privacy: React.FC = () => (
+  <div className="container mx-auto px-4 py-20 animate-fade-up max-w-4xl">
+    <h1 className="text-5xl md:text-6xl font-black text-mill-green tracking-tighter mb-4">Privacy Policy</h1>
+    <p className="text-slate-500 font-bold mb-12">
+      Mahadev Oil Mill, Vasad respects your privacy. This Privacy Policy outlines the manner your data is collected. You are advised to please read the Privacy Policy carefully. By accessing the services provided by mahadevoils.com you agree to the collection and use of your data by mahadevoils.com in the manner provided in this Privacy Policy.
+    </p>
+    <p className="text-slate-500 font-bold mb-12">
+      If you have questions or concerns regarding this statement, you can email us at:<br />
+      <a href="mailto:mahadevoilmill13@gmail.com" className="text-mill-green underline">mahadevoilmill13@gmail.com</a>
+    </p>
+    <p className="text-slate-500 font-bold mb-12">
+      The Policy does not apply to the procedures and practices followed by entities that are not managed, owned, or controlled by Mahadev Oil Mill, Vasad or to the people that are not engaged, employed, or managed by Mahadev Oil Mill, Vasad.
+    </p>
+
+    <Section title="Information that may be collected from you">
+      <p>mahadevoils.com collects the details provided by you on registration together with information we learn about you from your use of our service and your visits to our website and other websites accessible from them.</p>
+      <p className="mt-4">Kindly note that mahadevoils.com accepts orders in COD (Cash on Delivery) only.</p>
+      <p className="mt-4">We may collect additional information in connection with your participation in any promotions or contests offered by us and information you provide when giving us feedback or completing profile forms.</p>
+      <p className="mt-4">We also monitor customer traffic patterns and website use, which enables us to improve the service we provide. We will collect only such information as is necessary and relevant to provide you with the services available on the website.</p>
+      <p className="mt-4 font-black text-mill-green">Information collected may include:</p>
+      <ul className="list-disc pl-6 mt-2 space-y-1 text-slate-500 font-bold">
+        <li>Computer-identification information</li>
+        <li>IP address</li>
+        <li>Browser and device details</li>
+        <li>Name</li>
+        <li>Email address</li>
+        <li>Phone number</li>
+        <li>Billing and shipping address</li>
+        <li>PIN/ZIP code</li>
+        <li>Shopping preferences and activity</li>
+      </ul>
+    </Section>
+
+    <Section title="How We Collect Information">
+      <p>We collect information when you:</p>
+      <ul className="list-disc pl-6 mt-2 space-y-1 text-slate-500 font-bold">
+        <li>Register on our website</li>
+        <li>Place an order</li>
+        <li>Subscribe to updates or newsletters</li>
+        <li>Participate in contests or surveys</li>
+        <li>Contact customer support</li>
+        <li>Browse our website</li>
+      </ul>
+    </Section>
+
+    <Section title="Use of Information">
+      <p>We use your information to:</p>
+      <ul className="list-disc pl-6 mt-2 space-y-1 text-slate-500 font-bold">
+        <li>Process and deliver orders</li>
+        <li>Improve customer experience</li>
+        <li>Send order updates and notifications</li>
+        <li>Inform you about offers and new products</li>
+        <li>Maintain website security and prevent fraud</li>
+      </ul>
+    </Section>
+
+    <Section title="Sharing of Information">
+      <p>We do not rent, sell, or share your personal information with third parties except trusted service partners involved in website operation, shipping, or legal compliance.</p>
+      <p className="mt-4">Information may be disclosed if required by law or to protect the rights and safety of Mahadev Oil Mill, Vasad and its users.</p>
+    </Section>
+
+    <Section title="Cookies">
+      <p>Our website uses cookies to improve website functionality, remember user preferences, maintain secure sessions, and analyze website traffic.</p>
+      <p className="mt-4">You may disable cookies in your browser settings, though some website features may not work properly.</p>
+    </Section>
+
+    <Section title="Data Security">
+      <p>We follow generally accepted industry standards to protect your personal information. However, no method of internet transmission or electronic storage is completely secure.</p>
+    </Section>
+
+    <Section title="Account Closure">
+      <p>You may request account closure by emailing us from your registered email ID with the subject:</p>
+      <p className="mt-2 font-black text-mill-green italic">"Please close my mahadevoils.com account"</p>
+      <p className="mt-2">Access to your account will be disabled within 2 working days.</p>
+    </Section>
+
+    <Section title="Third-Party Links">
+      <p>Our website may contain links to third-party websites. We are not responsible for the privacy practices of those websites.</p>
+    </Section>
+
+    <Section title="Policy Updates">
+      <p>Mahadev Oil Mill, Vasad reserves the right to update or modify this Privacy Policy at any time. Changes will become effective immediately upon posting on the website.</p>
+    </Section>
+
+    <Section title="Contact Information">
+      <p className="font-black text-mill-green">Mahadev Oil Mill, Vasad</p>
+      <p>mahadevoils.com</p>
+      <p>Email: <a href="mailto:mahadevoilmill13@gmail.com" className="text-mill-green underline">mahadevoilmill13@gmail.com</a></p>
+    </Section>
+  </div>
+);
+
+const faqs = [
+  { q: "Which type of peanuts are used in Mahadev Oils?", a: "We use premium-quality groundnuts carefully selected from trusted farms to ensure purity, freshness, and rich taste." },
+  { q: "When are the peanuts harvested?", a: "Groundnuts are generally harvested during the peak farming season to maintain freshness and nutritional value." },
+  { q: "When is the best time to store Mahadev Oils?", a: "Store the oil in a cool, dry place away from direct sunlight to maintain freshness and quality for a longer period." },
+  { q: "What is the shelf life of Mahadev Oils?", a: "Mahadev Oils products generally have a shelf life of 9 to 12 months when stored properly." },
+  { q: "Is Mahadev Oils cold-pressed?", a: "Yes, our oils are prepared using traditional cold-pressed methods to preserve natural nutrients, aroma, and taste." },
+  { q: "Is Mahadev Oils wood-pressed?", a: "No, Mahadev Oils are not wood-pressed. We specialize in pure cold-pressed oils made using hygienic and modern extraction methods." },
+  { q: "Do you offer wholesale pricing?", a: "Yes, we offer wholesale pricing for bulk orders and distributors. Please contact our support team for details." },
+  { q: "What are the delivery charges?", a: "Delivery charges may vary depending on the order quantity and delivery location. Shipping details are shown during checkout." },
+  { q: "Is Mahadev Oils refined?", a: "No, Mahadev Oils are unrefined and processed naturally without harmful chemicals." },
+  { q: "What Makes Mahadev Oils Special?", a: "Mahadev Oils is: Cold-Pressed, Unrefined, Chemical-Free, Cholesterol-Free, Preservative-Free, Free from Mixing with Other Oils, 100% Pure, 100% Natural, 100% Original." },
+];
+
+const Faq: React.FC = () => {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  return (
+    <div className="container mx-auto px-4 py-20 animate-fade-up max-w-4xl">
+      <h1 className="text-5xl md:text-6xl font-black text-mill-green tracking-tighter mb-4">FAQs</h1>
+      <p className="text-slate-500 font-bold text-lg mb-12">Check out these FAQs to know everything about Mahadev Oils, our sourcing practices, and more!</p>
+      <div className="space-y-4">
+        {faqs.map((faq, i) => (
+          <div key={i} className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+            <button
+              onClick={() => setOpenIndex(openIndex === i ? null : i)}
+              className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition-colors"
+            >
+              <span className="text-lg font-black text-mill-green pr-4">{faq.q}</span>
+              <ChevronDown size={24} className={`text-mill-green shrink-0 transition-transform duration-300 ${openIndex === i ? 'rotate-180' : ''}`} />
+            </button>
+            <div className={`overflow-hidden transition-all duration-300 ${openIndex === i ? 'max-h-96' : 'max-h-0'}`}>
+              <div className="px-6 pb-6 text-slate-500 font-bold leading-relaxed">{faq.a}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <div className="mb-12">
+    <h2 className="text-2xl font-black text-mill-green tracking-tight mb-4 uppercase">{title}</h2>
+    <div className="text-slate-500 font-bold leading-relaxed">{children}</div>
+  </div>
+);
+
+const Returns: React.FC = () => (
+  <div className="container mx-auto px-4 py-20 animate-fade-up max-w-4xl">
+    <h1 className="text-5xl md:text-6xl font-black text-mill-green tracking-tighter mb-4">Return & Exchange Policy</h1>
+    <p className="text-slate-500 font-bold mb-12">
+      We are responsible for what we sell. mahadevoilmill.com offers a simple and easy 15-day return policy. You can conveniently return or exchange any item within 15 days from the date of delivery through our third-party distributors.
+    </p>
+    <p className="text-slate-500 font-bold mb-12">
+      Please do not accept any order if the seal is broken or unsealed at the time of delivery.
+    </p>
+    <p className="text-slate-500 font-bold mb-12">
+      All returned items must be unused and unopened for hygiene and safety reasons, and returned with original packaging and labels intact. Items without original labels or packaging will not be accepted.
+    </p>
+    <p className="text-slate-500 font-bold mb-12">
+      All items purchased from mahadevoilmill.com can be returned for a full refund within 24 hours from the date of delivery (as recorded by the shipping provider). The amount will be refunded to customers through third-party distributors.
+    </p>
+    <p className="text-slate-500 font-bold mb-12">
+      Once we receive the returned products, a quality check will be performed by our quality team. This is subject to the return meeting the following requirements:
+    </p>
+    <ul className="list-disc pl-6 mb-12 space-y-1 text-slate-500 font-bold">
+      <li>The items should be unused and unopened.</li>
+      <li>The product should be returned with original packaging and labels intact.</li>
+      <li>The items should be returned within 15 days from the delivery date.</li>
+    </ul>
+    <p className="text-slate-500 font-bold mb-12">
+      Any returned item received by us that does not meet the above-mentioned conditions will not be accepted and will be returned to the customer at their expense. No refund will be issued in such cases.
+    </p>
+    <p className="text-slate-500 font-bold mb-12">
+      A notification regarding the status of the return will be sent to the customer within 48–72 working hours from the date of receiving the items.
+    </p>
+    <p className="text-slate-500 font-bold mb-12">
+      In cases where reverse pick-up is not available, customers will need to self-ship the items.
+    </p>
+    <p className="text-slate-500 font-bold mb-12">
+      Please ensure that the items being returned are packed securely to prevent any loss or damage during transit. For all self-shipped returns, please use a reliable courier service.
+    </p>
+    <p className="text-slate-500 font-bold mb-12">
+      We do not offer exchanges for orders placed outside India. If you require a different size or variant, please return the unwanted item for a refund and place a new order.
+    </p>
+    <p className="text-slate-500 font-bold mb-12">
+      The customer will receive a cash refund through bank transfer into their account by third-party distributors.
+    </p>
+
+    <Section title="The Return Process">
+      <p className="font-black text-mill-green mb-2">Online Return / Exchange</p>
+      <p className="mb-4">You can return or exchange an item online at mahadevoilmill.com by following the steps below.</p>
+
+      <p className="font-black text-mill-green mb-2">For Registered Users</p>
+      <ol className="list-decimal pl-6 mb-4 space-y-1">
+        <li>Log in to the "My Account" section at mahadevoilmill.com.</li>
+        <li>Choose the order that needs modification.</li>
+        <li>Select the product to return or exchange and fill in the required details.</li>
+        <li>Proceed with the return or exchange request.</li>
+      </ol>
+
+      <p className="font-black text-mill-green mb-2">For Guest Users</p>
+      <ol className="list-decimal pl-6 space-y-1">
+        <li>Click on "Order Return" from the footer menu at mahadevoilmill.com.</li>
+        <li>Choose the order that needs modification.</li>
+        <li>Select the product to return or exchange and fill in the required details.</li>
+        <li>Proceed with the return or exchange request.</li>
+      </ol>
+    </Section>
+
+    <Section title="Customer Support">
+      <p className="mb-4">
+        For any queries, you can contact our customer care team by phone <strong>9898280209</strong> (09:30 am to 7:00 pm IST) or email <a href="mailto:mahadevoilmill13@gmail.com" className="text-mill-green underline">mahadevoilmill13@gmail.com</a>.
+      </p>
+      <p className="font-black text-mill-green mb-2">Please keep the following information ready before contacting customer support:</p>
+      <ul className="list-disc pl-6 mb-4 space-y-1">
+        <li>Order Number / Registered E-Mail ID</li>
+        <li>Product Name</li>
+        <li>Pick-Up Address</li>
+      </ul>
+      <p className="mb-4">To process a return or exchange successfully, please re-pack the items with all original packaging and labels that were shipped with the order.</p>
+      <p className="mb-4">Make sure the Return Form is completely filled and placed inside the package.</p>
+      <p className="mb-4">
+        Return Form is an easy-to-fill form included in the shipment parcel along with your order. If you have misplaced the return form, you may request a new copy from customer support.
+      </p>
+      <p className="font-black text-mill-green mb-2">Please mention the following details clearly on the package:</p>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>Order Number</li>
+        <li>Product Name</li>
+        <li>Return Reference Number</li>
+      </ul>
+    </Section>
+
+    <Section title="Credit Returns">
+      <p>The customer will receive a cash refund through bank transfer into their account.</p>
+    </Section>
+
+    <Section title="Terms & Conditions">
+      <p>This Return Policy applies to all items purchased directly from mahadevoilmill.com. The policy is subject to change without prior notice. Please visit mahadevoilmill.com regularly for the latest updates and policy information.</p>
+    </Section>
+  </div>
+);
+
 const Success: React.FC = () => (
   <div className="container mx-auto px-4 py-40 flex flex-col items-center justify-center min-h-[80vh] text-center animate-fade-up">
     <div className="w-48 h-48 bg-emerald-50 rounded-[50px] flex items-center justify-center text-emerald-500 mb-12 shadow-2xl ring-8 ring-white">
@@ -679,6 +938,7 @@ const Footer: React.FC = () => (
             <li><Link to="/shipping" className="hover:text-white transition-colors">Shipping Policy</Link></li>
             <li><Link to="/returns" className="hover:text-white transition-colors">Returns & Refunds</Link></li>
             <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+            <li><Link to="/faq" className="hover:text-white transition-colors">FAQs</Link></li>
             <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
           </ul>
         </div>
@@ -807,6 +1067,8 @@ const App: React.FC = () => {
   const [cartMessage, setCartMessage] = useState('');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [guestInfo, setGuestInfo] = useState({ name: '', phone: '', address: '', city: '', pincode: '' });
+  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -826,6 +1088,11 @@ const App: React.FC = () => {
     supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const updateCartQuantity = (productId: string, delta: number) => {
     setCartItems(prev => prev.map(item => 
@@ -848,6 +1115,12 @@ const App: React.FC = () => {
     });
     setCartMessage(`${product.name} Added! 🛒`);
     setTimeout(() => setCartMessage(''), 3000);
+  };
+
+  const toggleWishlist = (productId: string) => {
+    setWishlist(prev =>
+      prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]
+    );
   };
 
   const handleCheckout = async () => {
@@ -887,7 +1160,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Home 
               products={products} loading={loading} cartMessage={cartMessage}
-              handleAddToCart={handleAddToCart}
+              handleAddToCart={handleAddToCart} wishlist={wishlist} toggleWishlist={toggleWishlist}
             />} />
             <Route path="/cart" element={<Cart 
               cartItems={cartItems} updateCartQuantity={updateCartQuantity} removeFromCart={removeFromCart}
@@ -896,12 +1169,26 @@ const App: React.FC = () => {
             />} />
             <Route path="/login" element={<Login />} />
             <Route path="/success" element={<Success />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/returns" element={<Returns />} />
+            <Route path="/faq" element={<Faq />} />
           </Routes>
         </main>
         <Footer />
-        <a href="https://wa.me/919879944395" className="whatsapp-float shadow-emerald-200/50" target="_blank" rel="noreferrer">
-          <MessageCircle size={32} />
-        </a>
+        <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-center space-y-3">
+          {showScrollTop && (
+            <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="w-14 h-14 bg-white text-mill-green rounded-full shadow-lg hover:bg-mill-green hover:text-white transition-all flex items-center justify-center border border-gray-100">
+              <ChevronUp size={24} />
+            </button>
+          )}
+          <button onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })} className="w-14 h-14 bg-white text-mill-green rounded-full shadow-lg hover:bg-mill-green hover:text-white transition-all flex items-center justify-center border border-gray-100">
+            <ChevronDown size={24} />
+          </button>
+          <a href="https://wa.me/919879944395" className="bg-[#25D366] text-white rounded-full shadow-lg hover:scale-110 transition-all flex items-center justify-center shadow-[0_6px_24px_rgba(37,211,102,0.4)] hover:shadow-[0_8px_32px_rgba(37,211,102,0.6)] px-6 py-3 space-x-3" target="_blank" rel="noreferrer">
+            <MessageCircle size={24} />
+            <span className="font-black text-sm whitespace-nowrap">Order / ઓર્ડેર માટે</span>
+          </a>
+        </div>
       </div>
     </Router>
   );
