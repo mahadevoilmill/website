@@ -98,7 +98,7 @@ const TopBar: React.FC = () => (
   </div>
 );
 
-const Header: React.FC<{ cartCount: number }> = ({ cartCount }) => {
+const Header: React.FC<{ cartCount: number, wishlistCount: number, isAdmin?: boolean, handleLogout?: () => void }> = ({ cartCount, wishlistCount, isAdmin, handleLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -114,7 +114,7 @@ const Header: React.FC<{ cartCount: number }> = ({ cartCount }) => {
             <div className="ml-4 hidden lg:block text-left">
               <h1 className="leading-none">
                 <span className="text-3xl md:text-4xl font-black text-mill-green tracking-tighter block">MAHADEV</span>
-                <span className="text-[12px] md:text-sm text-mill-gold uppercase tracking-[0.5em] font-black mt-1 block">Oil Mill</span>
+                <span className="text-[12px] md:text-sm text-mill-gold uppercase tracking-[0.5em] font-black mt-1 block">Traditional Oil Mill</span>
               </h1>
             </div>
           </Link>
@@ -140,10 +140,25 @@ const Header: React.FC<{ cartCount: number }> = ({ cartCount }) => {
               <GitCompare size={24} />
               <span className="absolute top-1 right-1 w-5 h-5 bg-mill-gold text-white text-[10px] font-black rounded-full flex items-center justify-center">0</span>
             </button>
-            <Link to="/login" className="p-3 text-slate-600 hover:bg-gray-100 rounded-full transition-colors flex items-center space-x-2">
-              <User size={24} />
-              <span className="hidden lg:inline text-sm font-black uppercase tracking-widest">Login</span>
+            <Link to="/wishlist" className="p-3 text-slate-600 hover:bg-gray-100 rounded-full transition-colors hidden sm:block relative">
+              <Heart size={24} />
+              {wishlistCount > 0 && (
+                <span className="absolute top-1 right-1 w-5 h-5 bg-mill-gold text-white text-[10px] font-black rounded-full flex items-center justify-center ring-2 ring-white">
+                  {wishlistCount}
+                </span>
+              )}
             </Link>
+            {isAdmin ? (
+              <button onClick={handleLogout} className="p-3 text-secondary-red hover:bg-red-50 rounded-full transition-colors flex items-center space-x-2">
+                <User size={24} />
+                <span className="hidden lg:inline text-sm font-black uppercase tracking-widest">Logout</span>
+              </button>
+            ) : (
+              <Link to="/login" className="p-3 text-slate-600 hover:bg-gray-100 rounded-full transition-colors flex items-center space-x-2">
+                <User size={24} />
+                <span className="hidden lg:inline text-sm font-black uppercase tracking-widest">Login</span>
+              </Link>
+            )}
             <Link to="/cart" className="relative p-3.5 bg-mill-green text-white rounded-full hover:bg-mill-gold transition-all duration-300 group shadow-lg shadow-mill-green/20">
               <ShoppingBag size={24} />
               {cartCount > 0 && (
@@ -193,29 +208,69 @@ const Header: React.FC<{ cartCount: number }> = ({ cartCount }) => {
   );
 };
 
-const CategorySection: React.FC = () => {
-  const categories = [
-    { name: 'Groundnut Oil', image: 'https://dmdecibmnmnquppjnzjo.supabase.co/storage/v1/object/public/product/5%20Kg.png', count: '6 Products' },
-  ];
+const Gallery: React.FC<{ isAdmin?: boolean }> = ({ isAdmin }) => {
+  const [items, setItems] = useState<{url: string, type: 'image' | 'video'}[]>(() => {
+    const saved = localStorage.getItem('mahadev_gallery');
+    return saved ? JSON.parse(saved) : [
+      { url: '/assets/peanut-farm.jpg', type: 'image' },
+      { url: '/assets/peanut-kitchen.jpg', type: 'image' },
+      { url: '/assets/hero-video.mp4', type: 'video' },
+      { url: '/assets/peanut-process.jpg', type: 'image' }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('mahadev_gallery', JSON.stringify(items));
+  }, [items]);
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      const type = file.type.startsWith('video') ? 'video' : 'image';
+      setItems(prev => [...prev, { url, type }]);
+    }
+  };
 
   return (
-    <section className="py-24 bg-white">
-      <div className="container mx-auto px-4 text-center">
-        <div className="mb-14">
-          <span className="text-mill-gold font-black uppercase tracking-widest text-sm mb-3 block">Premium Collection</span>
-          <h2 className="text-5xl font-black text-mill-green tracking-tight">Shop by Category</h2>
+    <section id="gallery" className="py-24 bg-slate-50">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-8 text-left">
+          <div>
+            <span className="text-mill-gold font-black uppercase tracking-widest text-sm mb-3 block">Visual Journey</span>
+            <h2 className="text-5xl font-black text-mill-green tracking-tight">Our Gallery</h2>
+          </div>
+          
+          {isAdmin && (
+            <label className="cursor-pointer bg-mill-green text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-mill-gold transition-all shadow-lg flex items-center space-x-3">
+              <Plus size={20} />
+              <span>Add Photo / Video</span>
+              <input type="file" className="hidden" accept="image/*,video/*" onChange={handleUpload} />
+            </label>
+          )}
         </div>
-        <div className="flex justify-center">
-          {categories.map((cat, i) => (
-            <div key={i} className="group cursor-pointer max-w-md w-full">
-              <div className="relative h-[500px] rounded-[50px] overflow-hidden mb-5 shadow-2xl bg-slate-50 border border-gray-100 flex items-center justify-center p-16 transition-all duration-700 hover:shadow-mill-green/10">
-                <img src={cat.image} alt={cat.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-1000 drop-shadow-2xl" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-200/50 via-transparent to-transparent pointer-events-none"></div>
-                <div className="absolute bottom-12 left-0 right-0 text-center z-10">
-                  <h3 className="text-4xl font-black leading-none mb-4 text-mill-green">{cat.name}</h3>
-                  <div className="inline-block px-8 py-2.5 bg-mill-green text-white text-xs font-black uppercase tracking-[0.2em] rounded-full shadow-lg">
-                    {cat.count}
-                  </div>
+
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+          {items.map((item, i) => (
+            <div key={i} className="relative group rounded-[30px] overflow-hidden shadow-xl break-inside-avoid animate-fade-up">
+              {item.type === 'video' ? (
+                <video 
+                  src={item.url} 
+                  autoPlay 
+                  muted 
+                  loop 
+                  className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700" 
+                />
+              ) : (
+                <img 
+                  src={item.url} 
+                  alt="Gallery" 
+                  className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700" 
+                />
+              )}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                <div className="p-4 bg-white/20 backdrop-blur-md rounded-full text-white">
+                  <Search size={24} />
                 </div>
               </div>
             </div>
@@ -259,34 +314,65 @@ const Home: React.FC<{
   cartMessage: string,
   handleAddToCart: (p: Product) => void,
   wishlist: string[],
-  toggleWishlist: (id: string) => void
-}> = ({ products, loading, cartMessage, handleAddToCart, wishlist, toggleWishlist }) => (
+  toggleWishlist: (id: string) => void,
+  isAdmin?: boolean
+}> = ({ products, loading, cartMessage, handleAddToCart, wishlist, toggleWishlist, isAdmin }) => (
   <div className="animate-fade-up">
-    {/* Hero */}
-    <section id="home" className="relative h-[75vh] flex items-center bg-slate-50 overflow-hidden">
-      <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 items-center gap-12 h-full">
-        <div className="z-10 text-left pt-12 lg:pt-0">
-          <h1 className="text-6xl md:text-8xl font-black text-mill-green leading-[1.1] tracking-tighter mb-10">
-            Purity You Can <br/>
-            <span className="text-mill-gold">Trust & Taste.</span>
+    {/* Hero - Split Screen Partition Layout */}
+    <section id="home" className="relative min-h-screen flex flex-col lg:flex-row items-stretch bg-white overflow-hidden">
+      {/* Left Side: Content (The "Write" Portion) */}
+      <div className="flex-1 flex items-center justify-center p-8 lg:p-20 z-10">
+        <div className="max-w-2xl text-left">
+          <div className="inline-block px-6 py-2 bg-mill-gold/10 text-mill-gold rounded-full mb-8 text-xs font-black uppercase tracking-[0.4em] animate-fade-up">
+            Pure Traditional Heritage
+          </div>
+          <h1 className="text-6xl md:text-8xl lg:text-[9rem] font-black text-mill-green leading-[0.9] tracking-tighter mb-8 animate-fade-up" style={{ animationDelay: '100ms' }}>
+            PURE <br/>
+            <span className="text-mill-gold text-5xl md:text-7xl lg:text-[6rem] block mt-4">COLD PRESSED.</span>
           </h1>
-          <p className="text-xl text-slate-500 mb-12 max-w-xl font-bold leading-relaxed">
-            Experience the essence of tradition with our 100% pure cold pressed oils. No chemicals, no heat, just pure goodness.
+          <p className="text-xl md:text-2xl text-slate-500 mb-12 font-bold leading-relaxed animate-fade-up" style={{ animationDelay: '200ms' }}>
+            100% Natural Cold Pressed Groundnut Oil. <br/> 
+            No Chemicals, No Heat. Experience the traditional purity in every drop.
           </p>
-          <div className="flex flex-col sm:flex-row gap-6">
-            <a href="#products" className="bg-mill-green text-white px-10 py-5 rounded-full font-black uppercase tracking-widest hover:bg-mill-gold transition-all shadow-xl shadow-mill-green/20 text-base">Shop Now</a>
-            <a href="#about" className="bg-white border-2 border-mill-green text-mill-green px-10 py-5 rounded-full font-black uppercase tracking-widest hover:bg-mill-green hover:text-white transition-all text-base">Our Story</a>
+          <div className="flex flex-col sm:flex-row gap-6 animate-fade-up" style={{ animationDelay: '300ms' }}>
+            <a href="#products" className="bg-mill-green text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-mill-gold transition-all shadow-xl shadow-mill-green/20 text-center">Shop Now</a>
+            <a href="#about" className="bg-white border-2 border-slate-200 text-slate-600 px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:border-mill-green hover:text-mill-green transition-all text-center">Our Story</a>
           </div>
         </div>
-        <div className="relative h-full hidden lg:flex items-center justify-center">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-mill-gold/5 rounded-full blur-3xl"></div>
-          <img src="/assets/peanut-farm.jpg" alt="Peanut Farm" className="relative z-10 h-[85%] object-contain drop-shadow-[0_35px_35px_rgba(0,0,0,0.2)]" />
+      </div>
+
+      {/* Right Side: Video Portion */}
+      <div className="flex-1 relative min-h-[50vh] lg:min-h-screen overflow-hidden">
+        <div className="absolute inset-0 bg-mill-green">
+          <video 
+            autoPlay 
+            muted 
+            loop 
+            playsInline 
+            className="w-full h-full object-cover"
+          >
+            <source src="/assets/hero-video.mp4" type="video/mp4" />
+            <img src="/assets/peanut-hero.jpg" alt="Fallback" className="w-full h-full object-cover" />
+          </video>
+          {/* Subtle gradient overlay on video side */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white lg:from-transparent to-transparent opacity-20"></div>
         </div>
+        
+        {/* Floating Stat or Label for Video side */}
+        <div className="absolute bottom-12 right-12 bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl hidden md:block">
+          <p className="text-white font-black text-4xl mb-1">100%</p>
+          <p className="text-white/60 text-xs font-black uppercase tracking-widest">Natural Extraction</p>
+        </div>
+      </div>
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 hidden lg:block animate-bounce">
+        <div className="w-1 h-12 bg-gradient-to-b from-mill-gold to-transparent rounded-full"></div>
       </div>
     </section>
 
     <TrustBar />
-    <CategorySection />
+    <Gallery isAdmin={isAdmin} />
 
     {/* Products Section */}
     <section id="products" className="py-28 bg-slate-50">
@@ -635,9 +721,37 @@ const Cart: React.FC<{
             </div>
           </div>
 
-          <button className="btn-primary w-full py-7 text-2xl tracking-[0.2em] uppercase font-black rounded-[30px]" onClick={handleCheckout} disabled={checkoutLoading}>
-            {checkoutLoading ? 'Processing...' : 'Pay with Razorpay'}
+          <div className="bg-white p-8 rounded-[40px] border-2 border-mill-green/10 mb-10 text-center shadow-xl">
+            <span className="text-[10px] font-black text-mill-gold uppercase tracking-[0.3em] block mb-6">Scan to Pay Direct</span>
+            <div className="flex flex-col items-center space-y-6">
+              <div className="bg-white p-4 rounded-3xl shadow-inner border border-gray-100">
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`upi://pay?pa=rakesh.thakkar1-1@okicici&pn=Mahadev Oil Mill&am=${total}&cu=INR`)}`}
+                  alt="Payment QR Code"
+                  className="w-48 h-48 md:w-56 md:h-56"
+                />
+              </div>
+              <div className="space-y-2">
+                <p className="text-2xl font-black text-mill-green">rakesh.thakkar1-1@okicici</p>
+                <p className="text-sm font-bold text-slate-400">Scan this QR or use the UPI ID above</p>
+              </div>
+              <a 
+                href={`upi://pay?pa=rakesh.thakkar1-1@okicici&pn=Mahadev%20Oil%20Mill&am=${total}&cu=INR`}
+                className="w-full bg-slate-50 border-2 border-mill-green text-mill-green py-4 rounded-2xl font-black uppercase tracking-widest text-sm flex items-center justify-center space-x-3 hover:bg-mill-green hover:text-white transition-all"
+              >
+                <span>Pay with UPI Apps</span>
+              </a>
+            </div>
+          </div>
+
+          <button className="btn-primary w-full py-7 text-2xl tracking-[0.2em] uppercase font-black rounded-[30px] flex items-center justify-center space-x-4" onClick={handleCheckout} disabled={checkoutLoading}>
+            <ShoppingBag size={24} />
+            <span>{checkoutLoading ? 'Processing...' : 'Place Order Now'}</span>
           </button>
+          
+          <p className="mt-6 text-[10px] font-bold text-slate-400 uppercase text-center leading-relaxed">
+            By clicking "Place Order", your order will be recorded and <br/> we will contact you on WhatsApp for confirmation.
+          </p>
           
           {checkoutMessage && (
             <div className={`mt-10 p-6 rounded-3xl text-center text-sm font-black uppercase tracking-[0.3em] backdrop-blur-md ${checkoutMessage.includes('Success') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-secondary-red'}`}>
@@ -988,6 +1102,8 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState<'customer' | 'admin'>('customer');
   const navigate = useNavigate();
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -995,7 +1111,13 @@ const Login: React.FC = () => {
     setLoading(true);
     setMessage('');
     try {
-      if (isSignUp) {
+      if (isForgotPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/login`,
+        });
+        if (error) throw error;
+        setMessage('Password reset link sent to your email!');
+      } else if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
         setMessage('Check your email for the confirmation link!');
@@ -1013,12 +1135,35 @@ const Login: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-32 flex justify-center items-center min-h-[70vh]">
-      <div className="bg-white p-12 rounded-[50px] shadow-2xl border border-gray-100 w-full max-w-xl text-left">
+      <div className="bg-white p-10 md:p-12 rounded-[50px] shadow-2xl border border-gray-100 w-full max-w-xl text-left">
+        
+        {/* Tabs */}
+        {!isForgotPassword && (
+          <div className="flex bg-slate-100 p-2 rounded-3xl mb-12">
+            <button 
+              onClick={() => { setActiveTab('customer'); setIsSignUp(false); }}
+              className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${activeTab === 'customer' ? 'bg-white text-mill-green shadow-sm' : 'text-slate-400 hover:text-mill-green'}`}
+            >
+              Customer
+            </button>
+            <button 
+              onClick={() => { setActiveTab('admin'); setIsSignUp(false); }}
+              className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${activeTab === 'admin' ? 'bg-white text-mill-green shadow-sm' : 'text-slate-400 hover:text-mill-green'}`}
+            >
+              Admin
+            </button>
+          </div>
+        )}
+
         <h2 className="text-5xl font-black text-mill-green mb-4 tracking-tighter">
-          {isSignUp ? 'Create Account' : 'Welcome Back'}
+          {isForgotPassword ? 'Reset Password' : (activeTab === 'admin' ? 'Admin Access' : (isSignUp ? 'Join Us' : 'Welcome Back'))}
         </h2>
         <p className="text-slate-500 font-bold mb-10 text-lg">
-          {isSignUp ? 'Join the Mahadev Oil Mill family.' : 'Sign in to access your orders and profile.'}
+          {isForgotPassword 
+            ? 'Enter your email to receive a reset link.' 
+            : (activeTab === 'admin' 
+                ? (isSignUp ? 'Register as a mill administrator.' : 'Access management tools and gallery control.')
+                : (isSignUp ? 'Create an account to track your orders.' : 'Sign in to access your profile.'))}
         </p>
         
         <form onSubmit={handleAuth} className="space-y-6">
@@ -1033,41 +1178,65 @@ const Login: React.FC = () => {
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-black text-mill-green uppercase tracking-widest mb-3">Password</label>
-            <input 
-              type="password" 
-              className="form-input text-lg py-5" 
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+          
+          {!isForgotPassword && (
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <label className="block text-sm font-black text-mill-green uppercase tracking-widest">Password</label>
+                <button 
+                  type="button"
+                  onClick={() => setIsForgotPassword(true)}
+                  className="text-[10px] font-black uppercase tracking-widest text-mill-gold hover:text-mill-green transition-colors"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+              <input 
+                type="password" 
+                className="form-input text-lg py-5" 
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required={!isForgotPassword}
+              />
+            </div>
+          )}
           
           <button 
             type="submit" 
             className="btn-primary w-full py-6 text-xl tracking-widest uppercase font-black rounded-[25px] mt-4"
             disabled={loading}
           >
-            {loading ? 'Processing...' : (isSignUp ? 'Sign Up' : 'Login')}
+            {loading ? 'Processing...' : (isForgotPassword ? 'Send Reset Link' : (isSignUp ? 'Sign Up' : 'Secure Login'))}
           </button>
+
+          {isForgotPassword && (
+            <button 
+              type="button"
+              onClick={() => setIsForgotPassword(false)}
+              className="w-full text-center text-sm font-black text-slate-400 uppercase tracking-widest hover:text-mill-green transition-colors mt-4"
+            >
+              Back to Login
+            </button>
+          )}
         </form>
 
         {message && (
-          <div className={`mt-8 p-4 rounded-2xl text-center text-sm font-black uppercase tracking-widest ${message.includes('Check your email') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-secondary-red'}`}>
+          <div className={`mt-8 p-4 rounded-2xl text-center text-sm font-black uppercase tracking-widest ${message.includes('link') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-secondary-red'}`}>
             {message}
           </div>
         )}
 
-        <div className="mt-10 pt-8 border-t border-gray-50 text-center">
-          <button 
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-mill-green font-black uppercase tracking-widest text-sm hover:text-mill-gold transition-colors"
-          >
-            {isSignUp ? 'Already have an account? Login' : "Don't have an account? Sign Up"}
-          </button>
-        </div>
+        {!isForgotPassword && (
+          <div className="mt-10 pt-8 border-t border-gray-50 text-center">
+            <button 
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-mill-green font-black uppercase tracking-widest text-sm hover:text-mill-gold transition-colors"
+            >
+              {isSignUp ? 'Already have an account? Login' : `Don't have an ${activeTab} account? Sign Up`}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1077,6 +1246,7 @@ const App: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(fallbackProducts);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [checkoutMessage, setCheckoutMessage] = useState('');
   const [cartMessage, setCartMessage] = useState('');
@@ -1100,8 +1270,23 @@ const App: React.FC = () => {
       }
     };
     fetchProducts();
-    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      // SET YOUR ADMIN EMAIL HERE
+      const adminEmail = 'rakesh.thakkar1-1@okicici'; // or your login email
+      setIsAdmin(currentUser?.email === adminEmail || currentUser?.email === 'admin@mahadevoilmill.com');
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/';
+  };
 
   useEffect(() => {
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
@@ -1148,34 +1333,29 @@ const App: React.FC = () => {
       const total = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
       const { data: order, error } = await supabase.from('orders').insert({
         customer_id: user?.id || null, total_amount: total, guest_name: guestInfo.name, guest_phone: guestInfo.phone,
-        guest_address: guestInfo.address, guest_city: guestInfo.city, guest_pincode: guestInfo.pincode, status: 'pending'
+        guest_address: guestInfo.address, guest_city: guestInfo.city, guest_pincode: guestInfo.pincode, status: 'pending_payment'
       }).select('id').single();
       if (error) throw error;
 
-      const options = {
-        key: 'rzp_test_YOUR_KEY_HERE', amount: total * 100, currency: 'INR', name: 'Mahadev Oil Mill',
-        description: 'Traditional Cold Pressed Oil',
-        image: '/logo.jpeg',
-        handler: async (res: any) => {
-          await supabase.from('orders').update({ status: 'paid', payment_id: res.razorpay_payment_id }).eq('id', order.id);
-          setCartItems([]);
-          window.location.href = '/success';
-        },
-        prefill: { name: guestInfo.name, contact: guestInfo.phone }, theme: { color: '#1b4332' }
-      };
-      new window.Razorpay(options).open();
+      // Create WhatsApp message
+      const itemsList = cartItems.map(item => `${item.product.name} (${item.product.size}) x${item.quantity}`).join('%0A');
+      const message = `New Order Placed!%0A%0A*Customer:* ${guestInfo.name}%0A*Phone:* ${guestInfo.phone}%0A*Items:*%0A${itemsList}%0A%0A*Total:* ₹${total}%0A*Address:* ${guestInfo.address}, ${guestInfo.city} - ${guestInfo.pincode}`;
+      
+      setCartItems([]);
+      window.location.href = `https://wa.me/919879944395?text=${message}`;
     } catch (err: any) { setCheckoutMessage(err.message); } finally { setCheckoutLoading(false); }
   };
 
   return (
     <Router>
       <div className="min-h-screen bg-transparent flex flex-col">
-        <Header cartCount={cartCount} />
+        <Header cartCount={cartCount} wishlistCount={wishlist.length} isAdmin={isAdmin} handleLogout={handleLogout} />
         <main className="flex-grow relative z-10">
           <Routes>
             <Route path="/" element={<Home 
               products={products} loading={loading} cartMessage={cartMessage}
               handleAddToCart={handleAddToCart} wishlist={wishlist} toggleWishlist={toggleWishlist}
+              isAdmin={isAdmin}
             />} />
             <Route path="/cart" element={<Cart 
               cartItems={cartItems} updateCartQuantity={updateCartQuantity} removeFromCart={removeFromCart}
