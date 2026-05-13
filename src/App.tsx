@@ -109,12 +109,12 @@ const Header: React.FC<{ cartCount: number, wishlistCount: number, isAdmin?: boo
         <div className="container mx-auto px-4 h-24 flex items-center justify-between gap-6">
           <Link to="/" className="flex items-center shrink-0">
             <div className="w-16 h-16 md:w-20 md:h-20 overflow-hidden">
-              <img src="/logo.jpeg" alt="Mahadev Oil Mill" className="w-full h-full object-contain" />
+              <img src="/logo.png" alt="Mahadev Oil Mill" className="w-full h-full object-contain" />
             </div>
             <div className="ml-4 hidden lg:block text-left">
               <h1 className="leading-none">
                 <span className="text-3xl md:text-4xl font-black text-mill-green tracking-tighter block">MAHADEV</span>
-                <span className="text-[12px] md:text-sm text-mill-gold uppercase tracking-[0.5em] font-black mt-1 block">Traditional Oil Mill</span>
+                <span className="text-[12px] md:text-sm text-mill-gold uppercase tracking-[0.5em] font-black mt-1 block">Oil Mill</span>
               </h1>
             </div>
           </Link>
@@ -179,6 +179,8 @@ const Header: React.FC<{ cartCount: number, wishlistCount: number, isAdmin?: boo
             <a href="/#products" className="text-[13px] font-black uppercase tracking-widest text-slate-600 hover:text-mill-gold transition-colors h-full flex items-center">Shop</a>
             <a href="/#process" className="text-[13px] font-black uppercase tracking-widest text-slate-600 hover:text-mill-gold transition-colors h-full flex items-center">Our Process</a>
             <a href="/#about" className="text-[13px] font-black uppercase tracking-widest text-slate-600 hover:text-mill-gold transition-colors h-full flex items-center">About Us</a>
+            <a href="/#gallery" className="text-[13px] font-black uppercase tracking-widest text-slate-600 hover:text-mill-gold transition-colors h-full flex items-center">Gallery</a>
+            <Link to="/faq" className="text-[13px] font-black uppercase tracking-widest text-slate-600 hover:text-mill-gold transition-colors h-full flex items-center">FAQ</Link>
             <a href="/#contact" className="text-[13px] font-black uppercase tracking-widest text-slate-600 hover:text-mill-gold transition-colors h-full flex items-center">Contact</a>
             <div className="flex-1"></div>
             <Link to="/bulk" className="text-[12px] font-black uppercase tracking-widest text-white bg-mill-gold px-6 py-2 rounded-full hover:bg-mill-green transition-all shadow-sm">Buy Bulk Tins (15kg)</Link>
@@ -189,7 +191,7 @@ const Header: React.FC<{ cartCount: number, wishlistCount: number, isAdmin?: boo
       <div className={`fixed inset-0 bg-white z-[60] flex flex-col transition-all duration-500 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex justify-between items-center p-6 border-b">
           <div className="flex items-center">
-            <img src="/logo.jpeg" alt="Logo" className="w-10 h-10" />
+            <img src="/logo.png" alt="Logo" className="w-10 h-10" />
             <span className="ml-3 font-black text-mill-green">MAHADEV</span>
           </div>
           <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-gray-100 rounded-full">
@@ -201,6 +203,8 @@ const Header: React.FC<{ cartCount: number, wishlistCount: number, isAdmin?: boo
           <a href="/#products" onClick={() => setIsMenuOpen(false)} className="block text-2xl font-black text-mill-green">Shop</a>
           <a href="/#process" onClick={() => setIsMenuOpen(false)} className="block text-2xl font-black text-mill-green">Our Process</a>
           <a href="/#about" onClick={() => setIsMenuOpen(false)} className="block text-2xl font-black text-mill-green">About Us</a>
+          <a href="/#gallery" onClick={() => setIsMenuOpen(false)} className="block text-2xl font-black text-mill-green">Gallery</a>
+          <Link to="/faq" onClick={() => setIsMenuOpen(false)} className="block text-2xl font-black text-mill-green">FAQ</Link>
           <a href="/#contact" onClick={() => setIsMenuOpen(false)} className="block text-2xl font-black text-mill-green">Contact</a>
         </div>
       </div>
@@ -332,7 +336,7 @@ const Home: React.FC<{
           </h1>
           <p className="text-xl md:text-2xl text-slate-500 mb-12 font-bold leading-relaxed animate-fade-up" style={{ animationDelay: '200ms' }}>
             100% Natural Cold Pressed Groundnut Oil. <br/> 
-            No Chemicals, No Heat. Experience the traditional purity in every drop.
+            No Chemicals, No Heat. Experience the purity in every drop.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 animate-fade-up" style={{ animationDelay: '300ms' }}>
             <a href="#products" className="bg-mill-green text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-mill-gold transition-all shadow-xl shadow-mill-green/20 text-center">Shop Now</a>
@@ -580,7 +584,7 @@ const Home: React.FC<{
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {[
-              { comment: "The aroma of this cold pressed oil is truly authentic. It has completely transformed the taste of our traditional Gujarati dishes. Best in class quality!" },
+              { comment: "The aroma of this cold pressed oil is truly authentic. It has completely transformed the taste of our Gujarati dishes. Best in class quality!" },
               { comment: "We have been using Mahadev Oil for over a year now. The purity and consistency are unmatched. Highly recommended for any health-conscious family." }
             ].map((t, i) => (
               <div key={i} className="p-16 bg-white/40 backdrop-blur-md rounded-[60px] border border-white/60 shadow-xl group hover:bg-white/60 transition-all duration-500 text-left">
@@ -650,7 +654,7 @@ const Cart: React.FC<{
         </div>
         <h2 className="text-5xl font-black text-mill-green mb-6 tracking-tighter uppercase tracking-[0.1em]">Bag is empty</h2>
         <p className="text-2xl text-slate-500 font-bold mb-12 opacity-70">Pure goodness is just a few clicks away.</p>
-        <Link to="/" className="btn-primary text-xl px-12 uppercase tracking-widest font-black">Return to Mill</Link>
+        <Link to="/" className="btn-primary text-xl px-12 uppercase tracking-widest font-black">Return to Home</Link>
       </div>
     );
   }
@@ -1020,7 +1024,7 @@ const Footer: React.FC = () => (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-24 text-left">
         <div>
           <div className="flex items-center space-x-5 mb-10">
-            <img src="/logo.jpeg" alt="Logo" className="w-16 h-16 rounded-2xl bg-white p-1.5 shadow-xl" />
+            <img src="/logo.png" alt="Logo" className="w-16 h-16 rounded-2xl bg-white p-1.5 shadow-xl" />
             <h1 className="leading-none">
               <span className="text-4xl font-black tracking-tighter block text-white">MAHADEV</span>
               <span className="text-[12px] text-mill-gold uppercase tracking-[0.4em] font-black mt-1 block">Oil Mill</span>
@@ -1247,12 +1251,26 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    const saved = localStorage.getItem('mahadev_cart');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [checkoutMessage, setCheckoutMessage] = useState('');
   const [cartMessage, setCartMessage] = useState('');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [guestInfo, setGuestInfo] = useState({ name: '', phone: '', address: '', city: '', pincode: '' });
-  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [wishlist, setWishlist] = useState<string[]>(() => {
+    const saved = localStorage.getItem('mahadev_wishlist');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('mahadev_cart', JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  useEffect(() => {
+    localStorage.setItem('mahadev_wishlist', JSON.stringify(wishlist));
+  }, [wishlist]);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
