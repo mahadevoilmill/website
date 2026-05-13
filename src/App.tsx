@@ -1349,7 +1349,7 @@ const App: React.FC = () => {
     setCheckoutLoading(true);
     try {
       const total = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-      const { data: order, error } = await supabase.from('orders').insert({
+      const { error } = await supabase.from('orders').insert({
         customer_id: user?.id || null, total_amount: total, guest_name: guestInfo.name, guest_phone: guestInfo.phone,
         guest_address: guestInfo.address, guest_city: guestInfo.city, guest_pincode: guestInfo.pincode, status: 'pending_payment'
       }).select('id').single();
