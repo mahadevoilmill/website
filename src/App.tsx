@@ -14,6 +14,7 @@ import {
   MapPin, 
   Phone, 
   MessageCircle,
+  Bot,
   CheckCircle,
   ArrowLeft,
   Star,
@@ -33,6 +34,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import Chatbot, { ChatbotAdmin } from './Chatbot';
 
 // --- Interfaces ---
 interface Product {
@@ -60,11 +62,11 @@ declare global {
 
 // --- Constants ---
 const fallbackProducts: Product[] = [
-  { id: 'fallback-1', name: 'Cold Pressed Groundnut Oil', size: '1 Litre', price: 210, tag: 'Bestseller', category: 'Groundnut', description: '100% pure, cold pressed groundnut oil for healthy daily cooking.', image_url: '/assets/Peanut oil.jpg' },
+  { id: 'fallback-1', name: 'Cold Pressed Groundnut Oil', size: '1 Litre', price: 270, tag: 'Bestseller', category: 'Groundnut', description: '100% pure, cold pressed groundnut oil for healthy daily cooking.', image_url: '/assets/Peanut oil.jpg' },
   { id: 'fallback-2', name: 'Cold Pressed Groundnut Oil', size: '1 kg', price: 280, category: 'Groundnut', description: 'Premium quality groundnut oil in 1kg packing.', image_url: '/assets/peanut-oil-bottle.jpg' },
-  { id: 'fallback-3', name: 'Cold Pressed Groundnut Oil', size: '5 Litre', price: 1050, category: 'Groundnut', description: 'Premium cold pressed groundnut oil in 5L pack.', image_url: 'https://dmdecibmnmnquppjnzjo.supabase.co/storage/v1/object/public/product/5%20Kg.png' },
+  { id: 'fallback-3', name: 'Cold Pressed Groundnut Oil', size: '5 Litre', price: 1300, category: 'Groundnut', description: 'Premium cold pressed groundnut oil in 5L pack.', image_url: 'https://dmdecibmnmnquppjnzjo.supabase.co/storage/v1/object/public/product/5%20Kg.png' },
   { id: 'fallback-4', name: 'Cold Pressed Groundnut Oil', size: '5 kg', price: 1400, category: 'Groundnut', description: 'Bulk quantity for regular kitchen use.', image_url: 'https://dmdecibmnmnquppjnzjo.supabase.co/storage/v1/object/public/product/5%20Kg.png' },
-  { id: 'fallback-5', name: 'Cold Pressed Groundnut Oil', size: '15 Litre', price: 2850, tag: 'Bulk Save', category: 'Groundnut', description: 'Ideal for commercial kitchens.', image_url: '/assets/products.jpg' },
+  { id: 'fallback-5', name: 'Cold Pressed Groundnut Oil', size: '15 Litre', price: 3500, tag: 'Bulk Save', category: 'Groundnut', description: 'Ideal for commercial kitchens.', image_url: '/assets/products.jpg' },
   { id: 'fallback-6', name: 'Cold Pressed Groundnut Oil', size: '15 kg', price: 3400, category: 'Groundnut', description: 'Large 15kg pack for maximum savings.', image_url: '/assets/Peanut oil.jpg' },
 ];
 
@@ -149,10 +151,16 @@ const Header: React.FC<{ cartCount: number, wishlistCount: number, isAdmin?: boo
               )}
             </Link>
             {isAdmin ? (
-              <button onClick={handleLogout} className="p-3 text-secondary-red hover:bg-red-50 rounded-full transition-colors flex items-center space-x-2">
-                <User size={24} />
-                <span className="hidden lg:inline text-sm font-black uppercase tracking-widest">Logout</span>
-              </button>
+              <div className="flex items-center space-x-3">
+                <Link to="/login" className="p-3 text-mill-green hover:bg-emerald-50 rounded-full transition-colors flex items-center space-x-2">
+                  <Bot size={24} />
+                  <span className="hidden lg:inline text-sm font-black uppercase tracking-widest">Dashboard</span>
+                </Link>
+                <button onClick={handleLogout} className="p-3 text-secondary-red hover:bg-red-50 rounded-full transition-colors flex items-center space-x-2">
+                  <User size={24} />
+                  <span className="hidden lg:inline text-sm font-black uppercase tracking-widest">Logout</span>
+                </button>
+              </div>
             ) : (
               <Link to="/login" className="p-3 text-slate-600 hover:bg-gray-100 rounded-full transition-colors flex items-center space-x-2">
                 <User size={24} />
@@ -236,6 +244,12 @@ const Gallery: React.FC<{ isAdmin?: boolean }> = ({ isAdmin }) => {
     }
   };
 
+  const handleDelete = (index: number) => {
+    if (window.confirm('Are you sure you want to delete this item?')) {
+      setItems(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
   return (
     <section id="gallery" className="py-24 bg-slate-50">
       <div className="container mx-auto px-4">
@@ -257,6 +271,15 @@ const Gallery: React.FC<{ isAdmin?: boolean }> = ({ isAdmin }) => {
         <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
           {items.map((item, i) => (
             <div key={i} className="relative group rounded-[30px] overflow-hidden shadow-xl break-inside-avoid animate-fade-up">
+              {isAdmin && (
+                <button 
+                  onClick={() => handleDelete(i)}
+                  className="absolute top-4 right-4 z-20 p-3 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 hover:scale-110 shadow-lg"
+                  title="Delete Item"
+                >
+                  <Trash2 size={20} />
+                </button>
+              )}
               {item.type === 'video' ? (
                 <video 
                   src={item.url} 
@@ -1100,7 +1123,7 @@ const Footer: React.FC = () => (
   </footer>
 );
 
-const Login: React.FC = () => {
+const Login: React.FC<{ isAdmin: boolean }> = ({ isAdmin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -1128,7 +1151,10 @@ const Login: React.FC = () => {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate('/');
+        // Redirect to home only for regular users, stay for admin
+        if (email !== 'mahadevoilmill13@gmail.com') {
+          navigate('/');
+        }
       }
     } catch (err: any) {
       setMessage(err.message);
@@ -1139,107 +1165,127 @@ const Login: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-32 flex justify-center items-center min-h-[70vh]">
-      <div className="bg-white p-10 md:p-12 rounded-[50px] shadow-2xl border border-gray-100 w-full max-w-xl text-left">
+      <div className="bg-white p-10 md:p-12 rounded-[50px] shadow-2xl border border-gray-100 w-full max-w-4xl text-left">
         
-        {/* Tabs */}
-        {!isForgotPassword && (
-          <div className="flex bg-slate-100 p-2 rounded-3xl mb-12">
-            <button 
-              onClick={() => { setActiveTab('customer'); setIsSignUp(false); }}
-              className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${activeTab === 'customer' ? 'bg-white text-mill-green shadow-sm' : 'text-slate-400 hover:text-mill-green'}`}
-            >
-              Customer
-            </button>
-            <button 
-              onClick={() => { setActiveTab('admin'); setIsSignUp(false); }}
-              className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${activeTab === 'admin' ? 'bg-white text-mill-green shadow-sm' : 'text-slate-400 hover:text-mill-green'}`}
-            >
-              Admin
-            </button>
+        {isAdmin ? (
+          <div className="animate-fade-up">
+            <div className="flex items-center justify-between mb-12">
+               <div>
+                  <h2 className="text-5xl font-black text-mill-green tracking-tighter">Mill Dashboard</h2>
+                  <p className="text-slate-500 font-bold mt-2 text-lg">Welcome back, Owner. Management tools are active.</p>
+               </div>
+               <div className="p-4 bg-mill-gold/10 rounded-3xl">
+                  <Bot size={40} className="text-mill-gold" />
+               </div>
+            </div>
+            
+            <div className="space-y-12">
+               <ChatbotAdmin />
+            </div>
           </div>
-        )}
-
-        <h2 className="text-5xl font-black text-mill-green mb-4 tracking-tighter">
-          {isForgotPassword ? 'Reset Password' : (activeTab === 'admin' ? 'Admin Access' : (isSignUp ? 'Join Us' : 'Welcome Back'))}
-        </h2>
-        <p className="text-slate-500 font-bold mb-10 text-lg">
-          {isForgotPassword 
-            ? 'Enter your email to receive a reset link.' 
-            : (activeTab === 'admin' 
-                ? (isSignUp ? 'Register as a mill administrator.' : 'Access management tools and gallery control.')
-                : (isSignUp ? 'Create an account to track your orders.' : 'Sign in to access your profile.'))}
-        </p>
-        
-        <form onSubmit={handleAuth} className="space-y-6">
-          <div>
-            <label className="block text-sm font-black text-mill-green uppercase tracking-widest mb-3">Email Address</label>
-            <input 
-              type="email" 
-              className="form-input text-lg py-5" 
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          
-          {!isForgotPassword && (
-            <div>
-              <div className="flex justify-between items-center mb-3">
-                <label className="block text-sm font-black text-mill-green uppercase tracking-widest">Password</label>
+        ) : (
+          <>
+            {/* Tabs */}
+            {!isForgotPassword && (
+              <div className="flex bg-slate-100 p-2 rounded-3xl mb-12">
                 <button 
-                  type="button"
-                  onClick={() => setIsForgotPassword(true)}
-                  className="text-[10px] font-black uppercase tracking-widest text-mill-gold hover:text-mill-green transition-colors"
+                  onClick={() => { setActiveTab('customer'); setIsSignUp(false); }}
+                  className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${activeTab === 'customer' ? 'bg-white text-mill-green shadow-sm' : 'text-slate-400 hover:text-mill-green'}`}
                 >
-                  Forgot Password?
+                  Customer
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('admin'); setIsSignUp(false); }}
+                  className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${activeTab === 'admin' ? 'bg-white text-mill-green shadow-sm' : 'text-slate-400 hover:text-mill-green'}`}
+                >
+                  Admin
                 </button>
               </div>
-              <input 
-                type="password" 
-                className="form-input text-lg py-5" 
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required={!isForgotPassword}
-              />
-            </div>
-          )}
-          
-          <button 
-            type="submit" 
-            className="btn-primary w-full py-6 text-xl tracking-widest uppercase font-black rounded-[25px] mt-4"
-            disabled={loading}
-          >
-            {loading ? 'Processing...' : (isForgotPassword ? 'Send Reset Link' : (isSignUp ? 'Sign Up' : 'Secure Login'))}
-          </button>
+            )}
 
-          {isForgotPassword && (
-            <button 
-              type="button"
-              onClick={() => setIsForgotPassword(false)}
-              className="w-full text-center text-sm font-black text-slate-400 uppercase tracking-widest hover:text-mill-green transition-colors mt-4"
-            >
-              Back to Login
-            </button>
-          )}
-        </form>
+            <h2 className="text-5xl font-black text-mill-green mb-4 tracking-tighter">
+              {isForgotPassword ? 'Reset Password' : (activeTab === 'admin' ? 'Admin Access' : (isSignUp ? 'Join Us' : 'Welcome Back'))}
+            </h2>
+            <p className="text-slate-500 font-bold mb-10 text-lg">
+              {isForgotPassword 
+                ? 'Enter your email to receive a reset link.' 
+                : (activeTab === 'admin' 
+                    ? (isSignUp ? 'Register as a mill administrator.' : 'Access management tools and gallery control.')
+                    : (isSignUp ? 'Create an account to track your orders.' : 'Sign in to access your profile.'))}
+            </p>
+            
+            <form onSubmit={handleAuth} className="space-y-6">
+              <div>
+                <label className="block text-sm font-black text-mill-green uppercase tracking-widest mb-3">Email Address</label>
+                <input 
+                  type="email" 
+                  className="form-input text-lg py-5" 
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              
+              {!isForgotPassword && (
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <label className="block text-sm font-black text-mill-green uppercase tracking-widest">Password</label>
+                    <button 
+                      type="button"
+                      onClick={() => setIsForgotPassword(true)}
+                      className="text-[10px] font-black uppercase tracking-widest text-mill-gold hover:text-mill-green transition-colors"
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+                  <input 
+                    type="password" 
+                    className="form-input text-lg py-5" 
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required={!isForgotPassword}
+                  />
+                </div>
+              )}
+              
+              <button 
+                type="submit" 
+                className="btn-primary w-full py-6 text-xl tracking-widest uppercase font-black rounded-[25px] mt-4"
+                disabled={loading}
+              >
+                {loading ? 'Processing...' : (isForgotPassword ? 'Send Reset Link' : (isSignUp ? 'Sign Up' : 'Secure Login'))}
+              </button>
 
-        {message && (
-          <div className={`mt-8 p-4 rounded-2xl text-center text-sm font-black uppercase tracking-widest ${message.includes('link') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-secondary-red'}`}>
-            {message}
-          </div>
-        )}
+              {isForgotPassword && (
+                <button 
+                  type="button"
+                  onClick={() => setIsForgotPassword(false)}
+                  className="w-full text-center text-sm font-black text-slate-400 uppercase tracking-widest hover:text-mill-green transition-colors mt-4"
+                >
+                  Back to Login
+                </button>
+              )}
+            </form>
 
-        {!isForgotPassword && (
-          <div className="mt-10 pt-8 border-t border-gray-50 text-center">
-            <button 
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-mill-green font-black uppercase tracking-widest text-sm hover:text-mill-gold transition-colors"
-            >
-              {isSignUp ? 'Already have an account? Login' : `Don't have an ${activeTab} account? Sign Up`}
-            </button>
-          </div>
+            {message && (
+              <div className={`mt-8 p-4 rounded-2xl text-center text-sm font-black uppercase tracking-widest ${message.includes('link') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-secondary-red'}`}>
+                {message}
+              </div>
+            )}
+
+            {!isForgotPassword && (
+              <div className="mt-10 pt-8 border-t border-gray-50 text-center">
+                <button 
+                  onClick={() => setIsSignUp(!isSignUp)}
+                  className="text-mill-green font-black uppercase tracking-widest text-sm hover:text-mill-gold transition-colors"
+                >
+                  {isSignUp ? 'Already have an account? Login' : `Don't have an ${activeTab} account? Sign Up`}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -1294,8 +1340,8 @@ const App: React.FC = () => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       // SET YOUR ADMIN EMAIL HERE
-      const adminEmail = 'rakesh.thakkar1-1@okicici'; // or your login email
-      setIsAdmin(currentUser?.email === adminEmail || currentUser?.email === 'admin@mahadevoilmill.com');
+      const adminEmail = 'mahadevoilmill13@gmail.com';
+      setIsAdmin(currentUser?.email === adminEmail);
     });
 
     return () => subscription.unsubscribe();
@@ -1380,7 +1426,7 @@ const App: React.FC = () => {
               guestInfo={guestInfo} setGuestInfo={setGuestInfo} handleCheckout={handleCheckout}
               checkoutLoading={checkoutLoading} checkoutMessage={checkoutMessage}
             />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login isAdmin={isAdmin} />} />
             <Route path="/success" element={<Success />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/returns" element={<Returns />} />
@@ -1407,6 +1453,7 @@ const App: React.FC = () => {
             <MessageCircle size={24} />
             <span className="font-black text-sm whitespace-nowrap">Order / ઓર્ડેર માટે</span>
           </a>
+          <Chatbot />
         </div>
       </div>
     </Router>
